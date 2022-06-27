@@ -11,22 +11,21 @@ use std::fmt::Display;
 
 // mod element;
 use iced::{
-    button, pick_list, scrollable, window, Alignment, Application, Color, Column, Command,
-    Container, Element, Length, Row, Scrollable, Settings, Subscription, Text,
+    button, pick_list, scrollable, window, Application, Color, Column, Command, Container, Element,
+    Length, Row, Scrollable, Settings, Subscription,
 };
 use octocrab::{models::repos::Release, Page};
 
 use crate::{
     cli::Args,
-    command::{
-        device::{get_device_details, try_get_serial_port},
-        list::retrieve_releases,
-        CommandError,
-    },
+    command::{device::get_device_details, list::retrieve_releases, CommandError},
     usb::serial::models::DeviceDetails,
 };
 
-use self::element::{device_bar::device_bar, menu_bar::menu_bar};
+use self::{
+    device::try_get_serial_port,
+    element::{device_bar::device_bar, menu_bar::menu_bar, version_list::version_list},
+};
 
 pub fn run(_args: Args) -> iced::Result {
     let settings = Settings::<()> {
@@ -67,8 +66,16 @@ impl Display for Filter {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum Message {
+    Fetch,
+    Loaded(Result<Page<Release>, CommandError>),
+    FilterChanged(Filter),
+    DeviceChangedAction(device::Event),
+}
+
 #[derive(Default)]
-struct State {
+struct Ahoy {
     debug: bool,
     error: Option<Error>,
     fetch: button::State,
@@ -80,56 +87,24 @@ struct State {
     selected_filter: Option<Filter>,
 }
 
-#[derive(Debug, Clone)]
-pub enum Message {
-    // Selected(String),
-    // Install(Release),
-    Fetch,
-    Loaded(Result<Page<Release>, CommandError>),
-    FilterChanged(Filter),
-    DeviceChangedAction(device::Event),
-    // LanguageSelected(Language),
-    // Loaded(Result<SavedState, LoadError>),
-    // Saved(Result<(), SaveError>),
-    // InputChanged(String),
-    // CreateTask,
-    // FilterChanged(Filter),
-    // TaskMessage(usize, TaskMessage),
-}
-
-enum Ahoy {
-    Loading,
-    Loaded(State),
-    // Errored,
-    // Errored {
-    //     // error: Error,
-    //     try_again: button::State,
-    // },
-}
-
-impl Default for Ahoy {
-    fn default() -> Self {
-        Ahoy::Loading
-    }
-}
-
 impl Application for Ahoy {
     type Executor = iced::executor::Default;
     type Message = Message;
     type Flags = ();
 
-    // async fn device_listener(monitor: UsbMonitor)
-
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
-        (Ahoy::Loaded(State::default()), Command::none())
+        (
+            Ahoy {
+                debug: true,
+                selected_filter: Some(Filter::All),
+                ..Default::default()
+            },
+            Command::none(),
+        )
     }
 
     fn title(&self) -> String {
-        match self {
-            Ahoy::Loading => String::from("AHOY! - Fetching available versions..."),
-            Ahoy::Loaded(_) => String::from("AHOY! - Pirate MIDI Firmware Updater"),
-            // Ahoy::Errored => String::from("AHOY - ARRRRG MATEY, SOMETHING WENT WRONG..."),
-        }
+        String::from("AHOY! - Pirate MIDI Firmware Updater")
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
@@ -137,154 +112,94 @@ impl Application for Ahoy {
     }
 
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
-        match self {
-            Ahoy::Loading => {
-                match message {
-                    Message::Loaded(Ok(releases)) => {
-                        debug!("LOADING::RELEASES: {:?}", releases);
-                        *self = Ahoy::Loaded(State {
-                            debug: true,
-                            releases: Some(releases),
-                            selected_filter: Some(Filter::All),
-                            ..Default::default()
-                        });
-                    }
-                    _ => (),
-                }
-                Command::none()
+        match message {
+            Message::Loaded(Ok(releases)) => {
+                self.releases = Some(releases.clone());
             }
-            Ahoy::Loaded(state) => {
-                match message {
-                    Message::Loaded(Ok(releases)) => {
-                        state.releases = Some(releases.clone());
-                    }
-                    Message::Loaded(Err(_)) => {
-                        state.error = Some(Error::FetchError);
-                    }
-                    Message::FilterChanged(filter) => {
-                        state.selected_filter = Some(filter.clone());
-                    }
-                    Message::Fetch => {
-                        state.error = None;
-                        state.releases = None;
-                        info!("refresh requested - attempt to fetch releases...");
-                        if let Some(_) = state.device {
-                            return Command::perform(retrieve_releases(), Message::Loaded);
-                        }
-                    }
-                    Message::DeviceChangedAction(event) => match event {
-                        device::Event::Connect(device) => match try_get_serial_port(&device) {
-                            Some(port) => {
-                                info!("DEVICE CONNECTED: {:?}", device);
-                                match get_device_details(port) {
-                                    Ok(details) => {
-                                        info!("DEVICE DETAILS: {:?}", details);
-                                        state.device = Some(details);
-                                        return Command::perform(
-                                            retrieve_releases(),
-                                            Message::Loaded,
-                                        );
-                                    }
-                                    Err(err) => {
-                                        error!("error connecting to device: {:?}", err);
-                                        state.device = None;
-                                        state.releases = None;
-                                    }
-                                }
-                            }
-                            None => (),
-                        },
-                        device::Event::Disconnect(device) => {
-                            info!("DEVICE DISCONNECTED: {:?}", device);
-                            state.device = None;
-                            state.releases = None;
-                        }
-                    },
+            Message::Loaded(Err(_)) => {
+                self.error = Some(Error::FetchError);
+            }
+            Message::FilterChanged(filter) => {
+                self.selected_filter = Some(filter.clone());
+            }
+            Message::Fetch => {
+                self.error = None;
+                self.releases = None;
+                info!("refresh requested - attempt to fetch releases...");
+                if let Some(_) = self.device {
+                    return Command::perform(retrieve_releases(), Message::Loaded);
                 }
-                Command::none()
-            } // Ahoy::Errored => Command::none(),
+            }
+            Message::DeviceChangedAction(event) => match event {
+                device::Event::Connect(device) => match try_get_serial_port(&device) {
+                    Some(port) => {
+                        info!("DEVICE CONNECTED: {:?}", device);
+                        match get_device_details(port) {
+                            Ok(details) => {
+                                info!("DEVICE DETAILS: {:?}", details);
+                                self.device = Some(details);
+                                return Command::perform(retrieve_releases(), Message::Loaded);
+                            }
+                            Err(err) => {
+                                error!("error connecting to device: {:?}", err);
+                                self.device = None;
+                                self.releases = None;
+                            }
+                        }
+                    }
+                    None => (),
+                },
+                device::Event::Disconnect(device) => {
+                    info!("DEVICE DISCONNECTED: {:?}", device);
+                    self.device = None;
+                    self.releases = None;
+                }
+            },
         }
+        Command::none()
     }
 
-    fn view(&mut self) -> Element<Self::Message> {
-        let inner_content: Element<Message> = match self {
-            Ahoy::Loading => Text::new("Loading...").into(),
-            Ahoy::Loaded(State {
-                debug,
-                error,
-                fetch,
-                device,
-                filter,
-                releases,
-                detail_scroll,
-                version_scroll,
-                selected_filter,
-            }) => {
-                /* VERSION SELECTOR */
-                let version_list: Element<Message> = if let Some(release_page) = releases {
-                    release_page
-                        .items
-                        .iter_mut()
-                        .enumerate()
-                        .fold(
-                            Column::new().padding(DEFAULT_PADDING).spacing(5),
-                            |column, (_i, release)| {
-                                let unknown = String::from("UNKNOWN");
-                                let name = match &release.name {
-                                    Some(name) => name,
-                                    None => &unknown,
-                                };
+    fn view(&mut self) -> Element<Message> {
+        let inner_content: Element<Message> = {
+            /* VERSION DETAIL */
+            let version_detail: Element<Message> = Column::new()
+                // .push(Text::new(format!("{:?} {:?}", releases, error)))
+                .padding(DEFAULT_PADDING)
+                .height(Length::Shrink)
+                .width(Length::Fill)
+                .spacing(5)
+                .into();
 
-                                // column.push(Button::new(button::State::new()))
+            /* VERSION BROWSER (SELECTOR + DETAIL) */
+            let version_browser: Element<Message> = Row::new()
+                .padding(DEFAULT_PADDING)
+                .push(
+                    Scrollable::new(&mut self.version_scroll)
+                        .push(version_list(&mut self.releases)),
+                )
+                .push(Scrollable::new(&mut self.detail_scroll).push(version_detail))
+                .height(Length::Shrink)
+                .into();
 
-                                column.push(Text::new(name))
-                            },
-                        )
-                        .height(Length::Shrink)
-                        .width(Length::Shrink)
-                        .into()
-                } else {
-                    Column::new()
-                        .push(Text::new("Loading Releases..."))
-                        .padding(DEFAULT_PADDING)
-                        .height(Length::Fill)
-                        .width(Length::Fill)
-                        .align_items(Alignment::Center)
-                        .into()
-                };
+            let content: Element<Message> = Column::new()
+                .padding(DEFAULT_PADDING)
+                // .spacing(10)
+                .push(device_bar(&mut self.device))
+                .push(menu_bar(
+                    &mut self.error,
+                    &mut self.fetch,
+                    &mut self.filter,
+                    self.selected_filter.clone(),
+                ))
+                .push(version_browser)
+                .into();
 
-                /* VERSION DETAIL */
-                let version_detail: Element<Message> = Column::new()
-                    // .push(Text::new(format!("{:?} {:?}", releases, error)))
-                    .padding(DEFAULT_PADDING)
-                    .height(Length::Shrink)
-                    .width(Length::Fill)
-                    .spacing(5)
-                    .into();
-
-                /* VERSION BROWSER (SELECTOR + DETAIL) */
-                let version_browser: Element<Message> = Row::new()
-                    .padding(DEFAULT_PADDING)
-                    .push(Scrollable::new(version_scroll).push(version_list))
-                    .push(Scrollable::new(detail_scroll).push(version_detail))
-                    .height(Length::Shrink)
-                    .into();
-
-                let content: Element<Message> = Column::new()
-                    .padding(DEFAULT_PADDING)
-                    // .spacing(10)
-                    .push(device_bar(device))
-                    .push(menu_bar(error, fetch, filter, selected_filter.clone()))
-                    .push(version_browser)
-                    .into();
-
-                // graphical debugging
-                if *debug {
-                    content.explain(Color::BLACK)
-                } else {
-                    content
-                }
-            } // Ahoy::Errored => Text::new("ERROR").into(),
+            // graphical debugging
+            if *&mut self.debug {
+                content.explain(Color::BLACK)
+            } else {
+                content
+            }
         };
 
         // Finally wrap everything in a container.
@@ -318,67 +233,3 @@ impl Error {
         }
     }
 }
-
-// #[derive(Debug, Default, Clone)]
-// pub struct Controls {
-//     all_button: button::State,
-//     active_button: button::State,
-//     completed_button: button::State,
-// }
-
-// impl Controls {
-//     // fn view(&mut self, tasks: &[Task], current_filter: Filter) -> Row<Message> {
-//     //     let Controls {
-//     //         all_button,
-//     //         active_button,
-//     //         completed_button,
-//     //     } = self;
-
-//     //     let tasks_left = tasks.iter().filter(|task| !task.completed).count();
-
-//     //     let filter_button = |state, label, filter, current_filter| {
-//     //         let label = Text::new(label).size(16);
-//     //         let button = Button::new(state, label).style(style::Button::Filter {
-//     //             selected: filter == current_filter,
-//     //         });
-
-//     //         button.on_press(Message::FilterChanged(filter)).padding(8)
-//     //     };
-
-//     //     Row::new()
-//     //         .spacing(20)
-//     //         .align_items(Alignment::Center)
-//     //         .push(
-//     //             Text::new(&format!(
-//     //                 "{} {} left",
-//     //                 tasks_left,
-//     //                 if tasks_left == 1 { "task" } else { "tasks" }
-//     //             ))
-//     //             .width(Length::Fill)
-//     //             .size(16),
-//     //         )
-//     //         .push(
-//     //             Row::new()
-//     //                 .width(Length::Shrink)
-//     //                 .spacing(10)
-//     //                 .push(filter_button(
-//     //                     all_button,
-//     //                     "All",
-//     //                     Filter::All,
-//     //                     current_filter,
-//     //                 ))
-//     //                 .push(filter_button(
-//     //                     active_button,
-//     //                     "Active",
-//     //                     Filter::Active,
-//     //                     current_filter,
-//     //                 ))
-//     //                 .push(filter_button(
-//     //                     completed_button,
-//     //                     "Completed",
-//     //                     Filter::Completed,
-//     //                     current_filter,
-//     //                 )),
-//     //         )
-//     // }
-// }

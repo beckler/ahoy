@@ -1,9 +1,9 @@
 use std::fmt::Display;
 use std::io::ErrorKind;
 
-use serialport::{SerialPortInfo, SerialPortType};
+use serialport::SerialPortInfo;
 
-use crate::{USB_BAUD_RATE, USB_MANUFACTURER, USB_TIMEOUT};
+use crate::{USB_BAUD_RATE, USB_TIMEOUT};
 
 use self::commands::{Command, ControlArgs};
 
@@ -14,26 +14,6 @@ pub mod models;
 pub struct PirateMIDISerialDevice {}
 
 impl PirateMIDISerialDevice {
-    pub fn list_devices() -> Vec<SerialPortInfo> {
-        match serialport::available_ports() {
-            Ok(ports) => ports
-                .iter()
-                .cloned()
-                .filter(|port| match &port.port_type {
-                    SerialPortType::UsbPort(port_info) => match &port_info.manufacturer {
-                        Some(device_manufacturer) => device_manufacturer == USB_MANUFACTURER,
-                        None => false,
-                    },
-                    _ => false,
-                })
-                .collect::<Vec<SerialPortInfo>>(),
-            Err(err) => {
-                print!("ERROR: {:?}", err);
-                vec![]
-            }
-        }
-    }
-
     /* PUBLIC API */
     pub fn send(port: &SerialPortInfo, command: Command) -> Result<String, SerialError> {
         // have to keep a copy here since we're gonna move into our own thread.

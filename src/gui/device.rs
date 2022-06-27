@@ -1,8 +1,35 @@
-use crate::{command::device::try_get_serial_port, usb::watcher};
+use crate::usb::{
+    observer::{self, UsbDevice},
+    watcher,
+};
 use futures::channel::mpsc::Receiver;
 use futures::StreamExt;
 use iced_native::subscription::{self, Subscription};
-use usb_enumeration::{Event as UsbEvent, UsbDevice};
+use serialport::SerialPortInfo;
+// use usb_enumeration::{Event as UsbEvent, UsbDevice};
+
+#[derive(Debug, Clone)]
+pub enum Event {
+    Connect(UsbDevice),
+    Disconnect(UsbDevice),
+}
+
+enum State {
+    ListenerStarting,
+    Listener(Receiver<observer::Event>),
+}
+
+pub fn try_get_serial_port(device: &UsbDevice) -> Option<SerialPortInfo> {
+    match serialport::available_ports() {
+        Ok(ports) => ports.iter().cloned().find(|port| match &port.port_type {
+            serialport::SerialPortType::UsbPort(info) => {
+                info.vid == device.vendor_id && info.pid == device.product_id
+            }
+            _ => false,
+        }),
+        Err(_) => None,
+    }
+}
 
 pub fn listener() -> Subscription<Event> {
     struct BGWorker;
@@ -19,7 +46,7 @@ pub fn listener() -> Subscription<Event> {
                 State::Listener(mut subscription) => {
                     let event = subscription.select_next_some().await;
                     match event {
-                        UsbEvent::Initial(devices) => {
+                        observer::Event::Initial(devices) => {
                             match devices
                                 .iter()
                                 .find(|device| try_get_serial_port(device).is_some())
@@ -31,14 +58,14 @@ pub fn listener() -> Subscription<Event> {
                                 None => (None, State::Listener(subscription)),
                             }
                         }
-                        UsbEvent::Connect(device) => match try_get_serial_port(&device) {
+                        observer::Event::Connected(device) => match try_get_serial_port(&device) {
                             Some(_) => (
                                 Some(Event::Connect(device.clone())),
                                 State::Listener(subscription),
                             ),
                             None => (None, State::Listener(subscription)),
                         },
-                        UsbEvent::Disconnect(device) => (
+                        observer::Event::Disconnected(device) => (
                             Some(Event::Disconnect(device)),
                             State::Listener(subscription),
                         ),
@@ -47,15 +74,4 @@ pub fn listener() -> Subscription<Event> {
             }
         },
     )
-}
-
-#[derive(Debug, Clone)]
-pub enum Event {
-    Connect(UsbDevice),
-    Disconnect(UsbDevice),
-}
-
-enum State {
-    ListenerStarting,
-    Listener(Receiver<usb_enumeration::Event>),
 }
