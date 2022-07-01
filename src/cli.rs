@@ -1,12 +1,16 @@
 use clap::{Parser, Subcommand};
 
 /// Update the firmware for Pirate MIDI devices
-#[derive(Parser, Debug)]
+#[derive(Default, Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 pub struct Args {
     /// Verbose mode (-v, -vv, -vvv, etc.)
     #[clap(global = true, short, long, parse(from_occurrences))]
     pub verbose: usize,
+
+    /// Graphical debug mode
+    #[clap(global = true, short, long)]
+    pub debug: bool,
 
     /// Source
     #[clap(subcommand)]

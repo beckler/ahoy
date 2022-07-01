@@ -1,102 +1,84 @@
-mod device;
+// mod components;
 mod element;
+mod style;
+mod update;
+mod usb;
 
 // Default values used on multiple elements.
-// pub static DEFAULT_FONT_SIZE: u16 = 16;
-// pub static DEFAULT_HEADER_FONT_SIZE: u16 = 19;
+pub static DEFAULT_HEADING_FONT_SIZE: u16 = 24;
+pub static DEFAULT_FONT_SIZE: u16 = 18;
 pub static DEFAULT_PADDING: u16 = 10;
 
 use log::*;
-use std::fmt::Display;
 
 // mod element;
 use iced::{
-    button, pick_list, scrollable, window, Application, Color, Column, Command, Container, Element,
-    Length, Row, Scrollable, Settings, Subscription,
+    window, Alignment, Application, Color, Column, Command, Container, Element, Length, Rule,
+    Settings, Space, Subscription, Svg, Text,
 };
-use octocrab::{models::repos::Release, Page};
+use octocrab::models::repos::Release;
 
 use crate::{
-    cli::Args,
-    command::{device::get_device_details, list::retrieve_releases, CommandError},
+    cli::{self, Args},
+    command::CommandError,
     usb::serial::models::DeviceDetails,
 };
 
 use self::{
-    device::try_get_serial_port,
-    element::{device_bar::device_bar, menu_bar::menu_bar, version_list::version_list},
+    element::controls::ControlsView,
+    element::{device::DeviceView, version::VersionList},
+    update::handle_message,
 };
 
-pub fn run(_args: Args) -> iced::Result {
-    let settings = Settings::<()> {
+pub fn run(args: Args) -> iced::Result {
+    let settings = Settings::<cli::Args> {
         window: window::Settings {
-            size: (600, 400),
+            size: (600, 600),
             resizable: true,
             decorations: true,
             ..Default::default()
         },
-        antialiasing: true,
-        default_text_size: 16,
+        // antialiasing: true,
+        default_font: Some(include_bytes!("../../resources/SourceCodePro-Regular.ttf")),
+        default_text_size: DEFAULT_FONT_SIZE,
+        flags: args,
         ..Default::default()
     };
 
     Ahoy::run(settings)
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Filter {
-    All,
-    Stable,
-    Beta,
-}
-
-impl Filter {
-    const ALL: [Filter; 3] = [Filter::All, Filter::Stable, Filter::Beta];
-}
-
-impl Default for Filter {
-    fn default() -> Filter {
-        Filter::All
-    }
-}
-
-impl Display for Filter {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", &self)
-    }
-}
-
 #[derive(Debug, Clone)]
 pub enum Message {
     Fetch,
-    Loaded(Result<Page<Release>, CommandError>),
+    Retrieved(Result<Vec<Release>, CommandError>),
     FilterChanged(Filter),
-    DeviceChangedAction(device::Event),
+    ReleaseSelected(Release),
+    DeviceChangedAction(usb::Event),
 }
 
 #[derive(Default)]
-struct Ahoy {
+pub(crate) struct Ahoy {
     debug: bool,
     error: Option<Error>,
-    fetch: button::State,
     device: Option<DeviceDetails>,
-    filter: pick_list::State<Filter>,
-    releases: Option<Page<Release>>,
-    detail_scroll: scrollable::State,
-    version_scroll: scrollable::State,
-    selected_filter: Option<Filter>,
+    filter: Filter,
+    status: DeviceView,
+    controls: ControlsView,
+    versions: VersionList,
+    releases: Option<Vec<Release>>,
+    selected_version: Option<Release>,
 }
 
 impl Application for Ahoy {
     type Executor = iced::executor::Default;
     type Message = Message;
-    type Flags = ();
+    type Flags = cli::Args;
 
-    fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
+    fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         (
             Ahoy {
-                debug: true,
-                selected_filter: Some(Filter::All),
+                debug: flags.debug,
                 ..Default::default()
             },
             Command::none(),
@@ -104,132 +86,107 @@ impl Application for Ahoy {
     }
 
     fn title(&self) -> String {
-        String::from("AHOY! - Pirate MIDI Firmware Updater")
+        String::from("AHOY! - [UNOFFICIAL] Pirate MIDI Firmware Updater")
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        device::listener().map(Message::DeviceChangedAction)
+        usb::listener().map(Message::DeviceChangedAction)
     }
 
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
-        match message {
-            Message::Loaded(Ok(releases)) => {
-                self.releases = Some(releases.clone());
-            }
-            Message::Loaded(Err(_)) => {
-                self.error = Some(Error::FetchError);
-            }
-            Message::FilterChanged(filter) => {
-                self.selected_filter = Some(filter.clone());
-            }
-            Message::Fetch => {
-                self.error = None;
-                self.releases = None;
-                info!("refresh requested - attempt to fetch releases...");
-                if let Some(_) = self.device {
-                    return Command::perform(retrieve_releases(), Message::Loaded);
-                }
-            }
-            Message::DeviceChangedAction(event) => match event {
-                device::Event::Connect(device) => match try_get_serial_port(&device) {
-                    Some(port) => {
-                        info!("DEVICE CONNECTED: {:?}", device);
-                        match get_device_details(port) {
-                            Ok(details) => {
-                                info!("DEVICE DETAILS: {:?}", details);
-                                self.device = Some(details);
-                                return Command::perform(retrieve_releases(), Message::Loaded);
-                            }
-                            Err(err) => {
-                                error!("error connecting to device: {:?}", err);
-                                self.device = None;
-                                self.releases = None;
-                            }
-                        }
-                    }
-                    None => (),
-                },
-                device::Event::Disconnect(device) => {
-                    info!("DEVICE DISCONNECTED: {:?}", device);
-                    self.device = None;
-                    self.releases = None;
-                }
-            },
-        }
-        Command::none()
+        handle_message(self, message)
     }
 
     fn view(&mut self) -> Element<Message> {
-        let inner_content: Element<Message> = {
-            /* VERSION DETAIL */
-            let version_detail: Element<Message> = Column::new()
-                // .push(Text::new(format!("{:?} {:?}", releases, error)))
+        // BUILD PRIMARY VIEW
+        let inner_content: Element<Message> = if let Some(device) = &self.device {
+            /* BUILD PRIMARY COLUMN */
+            Column::new()
                 .padding(DEFAULT_PADDING)
-                .height(Length::Shrink)
-                .width(Length::Fill)
-                .spacing(5)
-                .into();
-
-            /* VERSION BROWSER (SELECTOR + DETAIL) */
-            let version_browser: Element<Message> = Row::new()
-                .padding(DEFAULT_PADDING)
-                .push(
-                    Scrollable::new(&mut self.version_scroll)
-                        .push(version_list(&mut self.releases)),
-                )
-                .push(Scrollable::new(&mut self.detail_scroll).push(version_detail))
-                .height(Length::Shrink)
-                .into();
-
-            let content: Element<Message> = Column::new()
-                .padding(DEFAULT_PADDING)
-                // .spacing(10)
-                .push(device_bar(&mut self.device))
-                .push(menu_bar(
-                    &mut self.error,
-                    &mut self.fetch,
-                    &mut self.filter,
-                    self.selected_filter.clone(),
+                .push(self.status.view(&device))
+                .push(Rule::horizontal(1))
+                // .push(error_message)
+                .push(self.controls.view(&self.filter))
+                .push(Rule::horizontal(1))
+                .push(self.versions.view(
+                    &self.error,
+                    &self.filter,
+                    &self.releases,
+                    &self.selected_version,
                 ))
-                .push(version_browser)
-                .into();
+                .into()
+        } else {
+            // if we have no device connect, display the plug icon
+            let usb_cable_image = Svg::from_path(format!(
+                "{}/resources/usb-light.svg",
+                env!("CARGO_MANIFEST_DIR"),
+            ))
+            .height(Length::Units(400));
 
-            // graphical debugging
-            if *&mut self.debug {
-                content.explain(Color::BLACK)
-            } else {
-                content
-            }
+            Column::new()
+                .align_items(Alignment::Center)
+                .push(usb_cable_image)
+                .push(Space::new(
+                    Length::Units(DEFAULT_PADDING),
+                    Length::Units(32),
+                ))
+                .push(Text::new("Please connect a device").size(DEFAULT_HEADING_FONT_SIZE))
+                .into()
+        };
+
+        // graphical debugging
+        let output = if *&mut self.debug {
+            inner_content.explain(Color::BLACK)
+        } else {
+            inner_content
         };
 
         // Finally wrap everything in a container.
-        Container::new(inner_content)
-            .width(Length::Fill)
+        Container::new(output)
             .height(Length::Fill)
-            // .style(style::NormalBackgroundContainer(color_palette))
+            .width(Length::Fill)
+            // .style(style::Container::Test)
             .into()
+    }
+}
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Filter {
+    All,
+    #[default]
+    Stable,
+    PreRelease,
+}
+
+impl Filter {
+    fn matches(&self, release: &Release) -> bool {
+        match self {
+            Filter::All => true,
+            Filter::Stable => !release.prerelease,
+            Filter::PreRelease => release.prerelease,
+        }
     }
 }
 
 #[derive(Debug, Clone)]
 pub enum Error {
-    FetchError,
-    APIError,
-    // LanguageError,
+    APIError(String),
 }
 
 impl From<reqwest::Error> for Error {
     fn from(error: reqwest::Error) -> Error {
-        dbg!(error);
+        debug!("ERROR: {}", error);
 
-        Error::APIError
+        Error::APIError(error.to_string())
     }
 }
 impl Error {
     fn to_string(&self) -> String {
         match self {
-            Error::FetchError => String::from("ERROR FETCHING RELEASES"),
-            Error::APIError => String::from("ERROR REACHING GITHUB"),
+            Error::APIError(message) => {
+                error!("Unable to reach Github. Details: {}", message);
+                format!("Error reaching Github!\nRun with `-v` flag to see more details.")
+            }
         }
     }
 }

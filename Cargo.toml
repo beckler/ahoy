@@ -8,11 +8,10 @@ edition = "2021"
 [dependencies]
 log = "0.4"
 clap = { version = "3.2", features = ["derive"] }
-iced = { version = "0.4", features = ["image", "debug", "tokio"] }
+iced = { version = "0.4", features = ["svg", "debug", "tokio"] }
 rusb = "0.9"
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.19", features = ["sync"] }
-anyhow = "1.0"
 futures = "0.3"
 reqwest = { version = "0.11", features = ["json", "rustls-tls"]}
 octocrab = "0.15"
@@ -20,8 +19,6 @@ stderrlog = "0.5"
 dfu-libusb = "0.2"
 serde_json = "1.0"
 serialport = "4.2"
-directories = "2.0"
 iced_native = "0.5"
 iced_futures = "0.4"
-usb_enumeration = "0.1"
 crossbeam-channel = "0.5"

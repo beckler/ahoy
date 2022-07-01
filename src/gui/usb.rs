@@ -6,7 +6,6 @@ use futures::channel::mpsc::Receiver;
 use futures::StreamExt;
 use iced_native::subscription::{self, Subscription};
 use serialport::SerialPortInfo;
-// use usb_enumeration::{Event as UsbEvent, UsbDevice};
 
 #[derive(Debug, Clone)]
 pub enum Event {

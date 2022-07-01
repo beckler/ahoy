@@ -1,3 +1,4 @@
-pub mod device_bar;
-pub mod menu_bar;
-pub mod version_list;
+pub mod controls;
+pub mod device;
+pub mod install;
+pub mod version;
