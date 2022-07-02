@@ -40,7 +40,7 @@ impl ControlsView {
         .on_press(Message::Fetch)
         .padding(DEFAULT_PADDING)
         .width(Length::Units(100))
-        .style(style::Button::ExternalAction)
+        .style(style::Button::SuccessAction)
         .into();
 
         Row::new()

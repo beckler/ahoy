@@ -10,10 +10,12 @@ use crate::gui::{
     Filter, Message, DEFAULT_PADDING,
 };
 
+use super::install::InstallBar;
+
 #[derive(Default, Debug, Clone)]
 struct ReleaseSelector {
     release: Option<Release>,
-    but_state: button::State,
+    state: button::State,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -21,6 +23,7 @@ pub struct VersionList {
     button_states: Vec<ReleaseSelector>,
     detail_scroll: scrollable::State,
     version_scroll: scrollable::State,
+    install_bar: InstallBar,
 }
 
 impl VersionList {
@@ -53,7 +56,7 @@ impl VersionList {
                 self.button_states = release_list.iter().fold(vec![], |mut selector, release| {
                     selector.push(ReleaseSelector {
                         release: Some(release.clone()),
-                        but_state: button::State::default(),
+                        state: button::State::default(),
                     });
                     selector
                 });
@@ -72,7 +75,7 @@ impl VersionList {
                         if filter.matches(release) {
                             column.push(
                                 Button::new(
-                                    &mut version.but_state,
+                                    &mut version.state,
                                     Text::new(release.tag_name.clone())
                                         .horizontal_alignment(Horizontal::Center),
                                 )
@@ -114,12 +117,24 @@ impl VersionList {
                     Some(selected) => Column::new()
                         .padding(DEFAULT_PADDING)
                         .spacing(DEFAULT_PADDING / 2)
+                        .height(Length::Fill)
                         .width(Length::Fill)
                         .push(Text::new(selected.name.clone().unwrap_or_default()))
                         .push(Rule::horizontal(1))
-                        .push(Text::new(selected.body.clone().unwrap_or_default()))
+                        .push(
+                            Scrollable::new(&mut self.detail_scroll)
+                                .height(Length::Fill)
+                                .push(Text::new(selected.body.clone().unwrap_or_default())),
+                        )
+                        .push(Rule::horizontal(1))
+                        .push(self.install_bar.view())
                         .into(),
-                    None => Column::new().width(Length::Fill).into(),
+                    None => Container::new(Text::new("Please select a release"))
+                        .center_x()
+                        .center_y()
+                        .height(Length::Fill)
+                        .width(Length::Fill)
+                        .into(),
                 };
 
                 // build our row
@@ -127,7 +142,7 @@ impl VersionList {
                     .padding([0, DEFAULT_PADDING])
                     .push(Scrollable::new(&mut self.version_scroll).push(release_selection_column))
                     .push(Rule::vertical(1))
-                    .push(Scrollable::new(&mut self.detail_scroll).push(release_selected_detail))
+                    .push(release_selected_detail)
                     .into()
             } else {
                 // loading message

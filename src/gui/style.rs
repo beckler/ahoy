@@ -1,7 +1,10 @@
 use iced::{button, container, Background, Color};
+use iced_aw::card;
+// use iced_aw::modal;
 
 pub enum Button {
-    ExternalAction,
+    SuccessAction,
+    CancelAction,
     FilterActive,
     FilterSelected,
     Release,
@@ -19,10 +22,17 @@ impl button::StyleSheet for Button {
         };
 
         match self {
-            Button::ExternalAction => button::Style {
+            Button::SuccessAction => button::Style {
                 background: Some(Background::Color(Color::TRANSPARENT)),
                 text_color: Color::from_rgb8(110, 196, 146),
                 border_color: Color::from_rgb8(110, 196, 146),
+                border_width: 1.0,
+                ..basic
+            },
+            Button::CancelAction => button::Style {
+                background: Some(Background::Color(Color::TRANSPARENT)),
+                text_color: Color::from_rgb8(223, 84, 107),
+                border_color: Color::from_rgb8(223, 84, 107),
                 border_width: 1.0,
                 ..basic
             },
@@ -64,11 +74,12 @@ impl button::StyleSheet for Button {
 
         button::Style {
             text_color: match self {
-                Button::ExternalAction => Color::WHITE,
+                Button::SuccessAction | Button::CancelAction => Color::WHITE,
                 _ => active.text_color,
             },
             background: match self {
-                Button::ExternalAction => Some(Background::Color(Color::from_rgb8(110, 196, 146))),
+                Button::SuccessAction => Some(Background::Color(Color::from_rgb8(110, 196, 146))),
+                Button::CancelAction => Some(Background::Color(Color::from_rgb8(223, 84, 107))),
                 Button::FilterActive => Some(Background::Color(Color::from_rgb8(230, 239, 248))),
                 Button::Release => Some(Background::Color(Color::from_rgb8(228, 254, 250))),
                 Button::PreRelease => Some(Background::Color(Color::from_rgb8(253, 246, 224))),
@@ -83,7 +94,6 @@ impl button::StyleSheet for Button {
 
         button::Style {
             background: match self {
-                Button::ExternalAction => Some(Background::Color(Color::from_rgb8(104, 193, 140))),
                 Button::FilterActive => Some(Background::Color(Color::from_rgb8(221, 232, 245))),
                 Button::Release => Some(Background::Color(Color::from_rgb8(218, 254, 248))),
                 Button::PreRelease => Some(Background::Color(Color::from_rgb8(253, 243, 213))),
@@ -112,6 +122,41 @@ impl container::StyleSheet for Container {
             //     background: Some(Background::Color(Color::from_rgb8(210, 210, 210))),
             //     ..Default::default()
             // },
+        }
+    }
+}
+
+// pub enum Modal {}
+
+// impl modal::StyleSheet for Modal {
+//     fn active(&self) -> modal::Style {
+//         modal::Style {
+//             ..Default::default()
+//         }
+//     }
+// }
+
+pub enum Card {
+    Modal,
+}
+
+impl card::StyleSheet for Card {
+    fn active(&self) -> card::Style {
+        match self {
+            Card::Modal => card::Style {
+                // background: Background,
+                border_radius: 5.0,
+                // border_width: f32,
+                // border_color: Color,
+                // head_background: Background,
+                // head_text_color: Color,
+                // body_background: Background,
+                // body_text_color: Color,
+                // foot_background: Background,
+                // foot_text_color: Color,
+                // close_color: Color,
+                ..Default::default()
+            },
         }
     }
 }

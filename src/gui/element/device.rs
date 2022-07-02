@@ -1,8 +1,8 @@
-use iced::{Alignment, Color, Column, Container, Element, Length, Row, Text};
+use iced::{svg::Handle, Alignment, Color, Column, Container, Element, Length, Row, Text};
 use iced_native::widget::Svg;
 
 use crate::{
-    gui::{Message, DEFAULT_PADDING},
+    gui::{Message, DEFAULT_PADDING, IMAGE_BRIDGE_4_LIGHT, IMAGE_BRIDGE_6_LIGHT},
     usb::serial::models::DeviceDetails,
 };
 
@@ -12,11 +12,10 @@ pub struct DeviceView {}
 impl DeviceView {
     pub fn view<'a>(&self, device: &'a DeviceDetails) -> Element<'a, Message> {
         // pull the brand for the device
-        let model_brand = Svg::from_path(format!(
-            "{}/resources/{}-light.svg",
-            env!("CARGO_MANIFEST_DIR"),
-            device.device_model.trim().to_lowercase(),
-        ))
+        let model_brand = match device.device_model.trim().to_lowercase().as_str() {
+            "bridge4" => Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_LIGHT.clone())),
+            _ => Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_LIGHT.clone())),
+        }
         .width(Length::Units(100));
 
         // build the brand column
