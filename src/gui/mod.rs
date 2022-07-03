@@ -53,7 +53,7 @@ pub fn run(args: Args) -> iced::Result {
             decorations: true,
             ..Default::default()
         },
-        // antialiasing: true,
+        antialiasing: true,
         default_font: Some(FONT_SOURCE_CODE_PRO),
         default_text_size: DEFAULT_FONT_SIZE,
         flags: args,
@@ -66,7 +66,6 @@ pub fn run(args: Args) -> iced::Result {
 #[derive(Debug, Clone)]
 pub enum Message {
     Fetch,
-    Reset,
     Cancel,
     Prompt,
     Install,
@@ -178,6 +177,7 @@ impl Application for Ahoy {
         Container::new(output)
             .height(Length::Fill)
             .width(Length::Fill)
+            .style(style::Container::Default)
             .into()
     }
 }

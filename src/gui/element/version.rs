@@ -10,8 +10,6 @@ use crate::gui::{
     Filter, Message, DEFAULT_PADDING,
 };
 
-use super::install::InstallBar;
-
 #[derive(Default, Debug, Clone)]
 struct ReleaseSelector {
     release: Option<Release>,
@@ -23,7 +21,7 @@ pub struct VersionList {
     button_states: Vec<ReleaseSelector>,
     detail_scroll: scrollable::State,
     version_scroll: scrollable::State,
-    install_bar: InstallBar,
+    install_button: button::State,
 }
 
 impl VersionList {
@@ -113,6 +111,23 @@ impl VersionList {
                     },
                 );
 
+                let install_bar = Row::new()
+                    .align_items(Alignment::Center)
+                    .padding([DEFAULT_PADDING, 0, 0, 0])
+                    .height(Length::Shrink)
+                    .width(Length::Fill)
+                    .push(Space::with_width(Length::Fill))
+                    .push(
+                        Button::new(
+                            &mut self.install_button,
+                            Text::new("Install").horizontal_alignment(Horizontal::Center),
+                        )
+                        .on_press(Message::Prompt)
+                        .padding(DEFAULT_PADDING)
+                        .width(Length::Units(100))
+                        .style(style::Button::ReleaseSelected),
+                    );
+
                 let release_selected_detail: Element<Message> = match selected_release {
                     Some(selected) => Column::new()
                         .padding(DEFAULT_PADDING)
@@ -127,7 +142,7 @@ impl VersionList {
                                 .push(Text::new(selected.body.clone().unwrap_or_default())),
                         )
                         .push(Rule::horizontal(1))
-                        .push(self.install_bar.view())
+                        .push(install_bar)
                         .into(),
                     None => Container::new(Text::new("Please select a release"))
                         .center_x()

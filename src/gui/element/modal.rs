@@ -25,7 +25,7 @@ impl InstallModal {
 
     pub fn view<'a>(&'a mut self, content: Element<'a, Message>) -> Element<'a, Message> {
         Modal::new(&mut self.modal_state, content, |state| {
-            Card::new(Text::new("My modal"), Text::new("This is a modal!"))
+            Card::new(Text::new(String::new()), Text::new("This is a modal!"))
                 .foot(
                     Row::new()
                         .spacing(10)
@@ -59,6 +59,7 @@ impl InstallModal {
         })
         .backdrop(Message::Cancel)
         .on_esc(Message::Cancel)
+        .style(style::Modal::Default)
         .into()
     }
 }

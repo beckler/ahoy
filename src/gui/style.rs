@@ -1,6 +1,14 @@
 use iced::{button, container, Background, Color};
 use iced_aw::card;
-// use iced_aw::modal;
+use iced_aw::modal;
+
+pub const DEFAULT_BORDER_RADIUS: f32 = 6.0;
+pub const DEFAULT_FONT_COLOR: Color = Color {
+    r: 0.29,
+    g: 0.29,
+    b: 0.29,
+    a: 1.0,
+};
 
 pub enum Button {
     SuccessAction,
@@ -17,7 +25,7 @@ impl button::StyleSheet for Button {
     fn active(&self) -> button::Style {
         let basic = button::Style {
             border_color: Color::from_rgb8(210, 210, 210),
-            border_radius: 5.0,
+            border_radius: DEFAULT_BORDER_RADIUS,
             ..button::Style::default()
         };
 
@@ -83,6 +91,10 @@ impl button::StyleSheet for Button {
                 Button::FilterActive => Some(Background::Color(Color::from_rgb8(230, 239, 248))),
                 Button::Release => Some(Background::Color(Color::from_rgb8(228, 254, 250))),
                 Button::PreRelease => Some(Background::Color(Color::from_rgb8(253, 246, 224))),
+                Button::ReleaseSelected => Some(Background::Color(Color::from_rgb8(0, 196, 167))),
+                Button::PreReleaseSelected => {
+                    Some(Background::Color(Color::from_rgb8(255, 220, 125)))
+                }
                 _ => active.background,
             },
             ..active
@@ -97,6 +109,10 @@ impl button::StyleSheet for Button {
                 Button::FilterActive => Some(Background::Color(Color::from_rgb8(221, 232, 245))),
                 Button::Release => Some(Background::Color(Color::from_rgb8(218, 254, 248))),
                 Button::PreRelease => Some(Background::Color(Color::from_rgb8(253, 243, 213))),
+                Button::ReleaseSelected => Some(Background::Color(Color::from_rgb8(0, 184, 156))),
+                Button::PreReleaseSelected => {
+                    Some(Background::Color(Color::from_rgb8(255, 217, 112)))
+                }
                 _ => hovered.background,
             },
             ..hovered
@@ -106,35 +122,41 @@ impl button::StyleSheet for Button {
 
 pub enum Container {
     Error,
-    // Test,
+    Default,
 }
 
 impl container::StyleSheet for Container {
     fn style(&self) -> container::Style {
+        let basic = container::Style {
+            text_color: Some(DEFAULT_FONT_COLOR),
+            border_radius: DEFAULT_BORDER_RADIUS,
+            ..container::Style::default()
+        };
+
         match self {
             Container::Error => container::Style {
                 text_color: Some(Color::WHITE),
                 background: Some(Background::Color(Color::from_rgb8(223, 84, 107))),
-                border_radius: 5.0,
-                ..Default::default()
+                ..basic
             },
-            // Container::Test => container::Style {
-            //     background: Some(Background::Color(Color::from_rgb8(210, 210, 210))),
-            //     ..Default::default()
-            // },
+            Container::Default => container::Style { ..basic },
         }
     }
 }
 
-// pub enum Modal {}
+pub enum Modal {
+    Default,
+}
 
-// impl modal::StyleSheet for Modal {
-//     fn active(&self) -> modal::Style {
-//         modal::Style {
-//             ..Default::default()
-//         }
-//     }
-// }
+impl modal::StyleSheet for Modal {
+    fn active(&self) -> modal::Style {
+        match self {
+            Modal::Default => modal::Style {
+                background: Background::Color(Color::from_rgba8(10, 10, 10, 0.86)),
+            },
+        }
+    }
+}
 
 pub enum Card {
     Modal,
@@ -142,10 +164,16 @@ pub enum Card {
 
 impl card::StyleSheet for Card {
     fn active(&self) -> card::Style {
+        let basic = card::Style {
+            background: Background::Color(Color::from_rgb8(245, 245, 245)),
+            head_background: Color::TRANSPARENT.into(),
+            border_radius: DEFAULT_BORDER_RADIUS,
+            ..card::Style::default()
+        };
+
         match self {
             Card::Modal => card::Style {
                 // background: Background,
-                border_radius: 5.0,
                 // border_width: f32,
                 // border_color: Color,
                 // head_background: Background,
@@ -155,7 +183,7 @@ impl card::StyleSheet for Card {
                 // foot_background: Background,
                 // foot_text_color: Color,
                 // close_color: Color,
-                ..Default::default()
+                ..basic
             },
         }
     }

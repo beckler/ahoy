@@ -19,11 +19,19 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
                 return Command::perform(fetch_releases(), Message::Retrieved);
             }
         }
-        Message::Reset => ahoy.selected_version = None,
         Message::Cancel => ahoy.install_modal.hide(),
         Message::Prompt => ahoy.install_modal.show(),
         Message::Install => (),
-        Message::Retrieved(Ok(releases)) => ahoy.releases = Some(releases),
+        Message::Retrieved(Ok(releases)) => {
+            // grab first version that matches the filter
+            ahoy.selected_version = releases
+                .iter()
+                .cloned()
+                .find(|rel| ahoy.filter.matches(rel));
+
+            // set our releases
+            ahoy.releases = Some(releases);
+        }
         Message::Retrieved(Err(err)) => ahoy.error = Some(Error::APIError(err.to_string())),
         Message::FilterChanged(filter) => ahoy.filter = filter,
         Message::ReleaseSelected(release) => ahoy.selected_version = Some(release),
