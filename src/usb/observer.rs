@@ -1,6 +1,7 @@
 use core::panic;
 use log::*;
 use rusb::{Context, Device, DeviceDescriptor, HotplugBuilder, UsbContext};
+use serialport::SerialPortInfo;
 use std::{collections::HashSet, thread, time::Duration};
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
@@ -42,7 +43,7 @@ impl<T: UsbContext> Drop for HotPlugHandler<T> {
 
 // USB DEVICE
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UsbDevice {
     pub vendor_id: u16,
     pub product_id: u16,
@@ -53,6 +54,21 @@ impl UsbDevice {
         UsbDevice {
             vendor_id: device_desc.vendor_id(),
             product_id: device_desc.product_id(),
+        }
+    }
+
+    pub fn try_get_serial_port(&self) -> Option<SerialPortInfo> {
+        match serialport::available_ports() {
+            Ok(ports) => {
+                trace!("available ports: {:?}", ports);
+                ports.iter().cloned().find(|port| match &port.port_type {
+                    serialport::SerialPortType::UsbPort(info) => {
+                        info.vid == self.vendor_id && info.pid == self.product_id
+                    }
+                    _ => false,
+                })
+            }
+            Err(_) => None,
         }
     }
 }

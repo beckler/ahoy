@@ -1,7 +1,10 @@
-name: Create Build
+name: Build Release
 
 on:
   push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -42,14 +45,14 @@ jobs:
             OS: ubuntu-latest
           - TARGET: aarch64-unknown-linux-musl # tested on aws t4g.nano in alpine container
             OS: ubuntu-latest
-          - TARGET: armv7-unknown-linux-gnueabihf # raspberry pi 2-3-4, not tested
-            OS: ubuntu-latest
-          - TARGET: armv7-unknown-linux-musleabihf # raspberry pi 2-3-4, not tested
-            OS: ubuntu-latest
-          - TARGET: arm-unknown-linux-gnueabihf # raspberry pi 0-1, not tested
-            OS: ubuntu-latest
-          - TARGET: arm-unknown-linux-musleabihf # raspberry pi 0-1, not tested
-            OS: ubuntu-latest
+          # - TARGET: armv7-unknown-linux-gnueabihf # raspberry pi 2-3-4, not tested
+          #   OS: ubuntu-latest
+          # - TARGET: armv7-unknown-linux-musleabihf # raspberry pi 2-3-4, not tested
+          #   OS: ubuntu-latest
+          # - TARGET: arm-unknown-linux-gnueabihf # raspberry pi 0-1, not tested
+          #   OS: ubuntu-latest
+          # - TARGET: arm-unknown-linux-musleabihf # raspberry pi 0-1, not tested
+          #   OS: ubuntu-latest
           - TARGET: x86_64-apple-darwin # tested on a mac, is not properly signed so there are security warnings
             OS: macos-latest
           - TARGET: aarch64-apple-darwin
@@ -59,7 +62,7 @@ jobs:
     needs: test
     runs-on: ${{ matrix.OS }}
     env:
-      NAME: rust-cross-compile-example
+      NAME: ahoy
       TARGET: ${{ matrix.TARGET }}
       OS: ${{ matrix.OS }}
     steps:
@@ -141,4 +144,5 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
+          generate_release_notes: true
           files: ./artifacts/*.tar.gz

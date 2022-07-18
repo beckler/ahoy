@@ -2,13 +2,8 @@ use iced::{button, container, Background, Color};
 use iced_aw::card;
 use iced_aw::modal;
 
-pub const DEFAULT_BORDER_RADIUS: f32 = 6.0;
-pub const DEFAULT_FONT_COLOR: Color = Color {
-    r: 0.29,
-    g: 0.29,
-    b: 0.29,
-    a: 1.0,
-};
+use super::DEFAULT_BORDER_RADIUS;
+use super::DEFAULT_FONT_COLOR;
 
 pub enum Button {
     SuccessAction,

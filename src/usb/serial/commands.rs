@@ -63,9 +63,11 @@ impl Display for ControlArgs {
     }
 }
 
+/// Command is the basis of our commands
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Command {
+    //
     Check,
     Control(ControlArgs),
     DataRequest(DataRequestArgs),

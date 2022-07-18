@@ -30,14 +30,14 @@ impl ControlsView {
                     style::Button::FilterActive
                 });
 
-            button.on_press(Message::FilterChanged(filter))
+            button.on_press(Message::ReleaseFilterChanged(filter))
         };
 
         let refresh_button: Element<Message> = Button::new(
             fetch_button,
             Text::new("Refresh").horizontal_alignment(Horizontal::Center),
         )
-        .on_press(Message::Fetch)
+        .on_press(Message::FetchReleases)
         .padding(DEFAULT_PADDING)
         .width(Length::Units(100))
         .style(style::Button::SuccessAction)

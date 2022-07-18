@@ -5,7 +5,6 @@ use crate::usb::{
 use futures::channel::mpsc::Receiver;
 use futures::StreamExt;
 use iced_native::subscription::{self, Subscription};
-use serialport::SerialPortInfo;
 
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -16,18 +15,6 @@ pub enum Event {
 enum State {
     ListenerStarting,
     Listener(Receiver<observer::Event>),
-}
-
-pub fn try_get_serial_port(device: &UsbDevice) -> Option<SerialPortInfo> {
-    match serialport::available_ports() {
-        Ok(ports) => ports.iter().cloned().find(|port| match &port.port_type {
-            serialport::SerialPortType::UsbPort(info) => {
-                info.vid == device.vendor_id && info.pid == device.product_id
-            }
-            _ => false,
-        }),
-        Err(_) => None,
-    }
 }
 
 pub fn listener() -> Subscription<Event> {
@@ -48,7 +35,7 @@ pub fn listener() -> Subscription<Event> {
                         observer::Event::Initial(devices) => {
                             match devices
                                 .iter()
-                                .find(|device| try_get_serial_port(device).is_some())
+                                .find(|device| device.try_get_serial_port().is_some())
                             {
                                 Some(device) => (
                                     Some(Event::Connect(device.clone())),
@@ -57,7 +44,7 @@ pub fn listener() -> Subscription<Event> {
                                 None => (None, State::Listener(subscription)),
                             }
                         }
-                        observer::Event::Connected(device) => match try_get_serial_port(&device) {
+                        observer::Event::Connected(device) => match &device.try_get_serial_port() {
                             Some(_) => (
                                 Some(Event::Connect(device.clone())),
                                 State::Listener(subscription),

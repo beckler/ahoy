@@ -4,10 +4,13 @@ use iced::{
 };
 use octocrab::models::repos::Release;
 
-use crate::gui::{
-    self,
-    style::{self},
-    Filter, Message, DEFAULT_PADDING,
+use crate::{
+    command::UsbConnection,
+    gui::{
+        self,
+        style::{self},
+        Filter, Message, DEFAULT_PADDING,
+    },
 };
 
 #[derive(Default, Debug, Clone)]
@@ -30,6 +33,7 @@ impl VersionList {
         error: &'a Option<gui::Error>,
         filter: &'a Filter,
         releases: &'a Option<Vec<Release>>,
+        connection: &'a UsbConnection,
         selected_release: &'a Option<Release>,
     ) -> Element<'a, Message> {
         let version_row: Element<Message> = if let Some(error) = error {
@@ -77,7 +81,7 @@ impl VersionList {
                                     Text::new(release.tag_name.clone())
                                         .horizontal_alignment(Horizontal::Center),
                                 )
-                                .on_press(Message::ReleaseSelected(release.clone()))
+                                .on_press(Message::SelectedRelease(release.clone()))
                                 .padding(DEFAULT_PADDING)
                                 .width(Length::Units(130))
                                 .style(
@@ -111,39 +115,61 @@ impl VersionList {
                     },
                 );
 
-                let install_bar = Row::new()
-                    .align_items(Alignment::Center)
-                    .padding([DEFAULT_PADDING, 0, 0, 0])
-                    .height(Length::Shrink)
-                    .width(Length::Fill)
-                    .push(Space::with_width(Length::Fill))
-                    .push(
-                        Button::new(
-                            &mut self.install_button,
-                            Text::new("Install").horizontal_alignment(Horizontal::Center),
-                        )
-                        .on_press(Message::Prompt)
-                        .padding(DEFAULT_PADDING)
-                        .width(Length::Units(100))
-                        .style(style::Button::ReleaseSelected),
-                    );
-
                 let release_selected_detail: Element<Message> = match selected_release {
-                    Some(selected) => Column::new()
-                        .padding(DEFAULT_PADDING)
-                        .spacing(DEFAULT_PADDING / 2)
-                        .height(Length::Fill)
-                        .width(Length::Fill)
-                        .push(Text::new(selected.name.clone().unwrap_or_default()))
-                        .push(Rule::horizontal(1))
-                        .push(
-                            Scrollable::new(&mut self.detail_scroll)
-                                .height(Length::Fill)
-                                .push(Text::new(selected.body.clone().unwrap_or_default())),
-                        )
-                        .push(Rule::horizontal(1))
-                        .push(install_bar)
-                        .into(),
+                    Some(selected) => {
+                        let selected_asset = selected.assets.iter().find(|asset| {
+                            asset.name.contains(
+                                connection
+                                    .details
+                                    .device_model
+                                    .trim()
+                                    .to_lowercase()
+                                    .as_str(),
+                            )
+                        });
+
+                        let install_bar = Row::new()
+                            .align_items(Alignment::Center)
+                            .padding([DEFAULT_PADDING, 0, 0, 0])
+                            .height(Length::Shrink)
+                            .width(Length::Fill);
+
+                        let install_bar = match selected_asset {
+                            Some(asset) => install_bar
+                                // .push(Text::new(format!("{}", asset.name)))
+                                .push(Space::with_width(Length::Fill))
+                                .push(
+                                    Button::new(
+                                        &mut self.install_button,
+                                        Text::new("Download and Install")
+                                            .horizontal_alignment(Horizontal::Center),
+                                    )
+                                    .on_press(Message::Download(asset.clone()))
+                                    .padding(DEFAULT_PADDING)
+                                    .width(Length::Units(250))
+                                    .style(style::Button::ReleaseSelected),
+                                ),
+                            None => install_bar.push(Text::new(
+                                "No assets are available for download for this device",
+                            )),
+                        };
+
+                        Column::new()
+                            .padding(DEFAULT_PADDING)
+                            .spacing(DEFAULT_PADDING / 2)
+                            .height(Length::Fill)
+                            .width(Length::Fill)
+                            .push(Text::new(selected.name.clone().unwrap_or_default()))
+                            .push(Rule::horizontal(1))
+                            .push(
+                                Scrollable::new(&mut self.detail_scroll)
+                                    .height(Length::Fill)
+                                    .push(Text::new(selected.body.clone().unwrap_or_default())),
+                            )
+                            .push(Rule::horizontal(1))
+                            .push(install_bar)
+                            .into()
+                    }
                     None => Container::new(Text::new("Please select a release"))
                         .center_x()
                         .center_y()

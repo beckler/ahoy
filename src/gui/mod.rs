@@ -1,28 +1,32 @@
-// mod components;
 mod element;
 mod style;
 mod update;
 mod usb;
 
 /* STATIC RESOURCES */
-// Default values used on multiple elements.
-pub static DEFAULT_HEADING_FONT_SIZE: u16 = 24;
-pub static DEFAULT_FONT_SIZE: u16 = 18;
-pub static DEFAULT_PADDING: u16 = 10;
-
-// fonts
-pub static FONT_SOURCE_CODE_PRO: &[u8] =
-    include_bytes!("../../resources/SourceCodePro-Regular.ttf");
-
-// for light mode
+// images for light mode
 pub static IMAGE_USB_CABLE_LIGHT: &[u8] = include_bytes!("../../resources/usb-light.svg");
 pub static IMAGE_BRIDGE_6_LIGHT: &[u8] = include_bytes!("../../resources/bridge6-light.svg");
 pub static IMAGE_BRIDGE_4_LIGHT: &[u8] = include_bytes!("../../resources/bridge4-light.svg");
 
-// for dark mode
+// images for dark mode
 // pub static IMAGE_USB_CABLE_DARK: &[u8] = include_bytes!("../../resources/usb-dark.svg");
 // pub static IMAGE_BRIDGE_6_DARK: &[u8] = include_bytes!("../../resources/bridge6-dark.svg");
 // pub static IMAGE_BRIDGE_4_DARK: &[u8] = include_bytes!("../../resources/bridge4-dark.svg");
+
+pub static DEFAULT_FONT: &[u8] = include_bytes!("../../resources/RobotoMono-Regular.ttf");
+pub static DEFAULT_PADDING: u16 = 10;
+pub static DEFAULT_FONT_SIZE: u16 = 18;
+pub static DEFAULT_BORDER_RADIUS: f32 = 6.0;
+pub static DEFAULT_HEADING_FONT_SIZE: u16 = 24;
+pub static DEFAULT_FONT_COLOR: Color = Color {
+    r: 0.29,
+    g: 0.29,
+    b: 0.29,
+    a: 1.0,
+};
+
+use std::path::PathBuf;
 
 use log::*;
 
@@ -31,12 +35,11 @@ use iced::{
     svg::Handle, window, Alignment, Application, Color, Column, Command, Container, Element,
     Length, Row, Rule, Settings, Space, Subscription, Svg, Text,
 };
-use octocrab::models::repos::Release;
+use octocrab::models::repos::{Asset, Release};
 
 use crate::{
     cli::{self, Args},
-    command::CommandError,
-    usb::serial::models::DeviceDetails,
+    command::{CommandError, UsbConnection},
 };
 
 use self::{
@@ -48,13 +51,13 @@ use self::{
 pub fn run(args: Args) -> iced::Result {
     let settings = Settings::<cli::Args> {
         window: window::Settings {
-            size: (600, 600),
+            size: (800, 800),
             resizable: true,
             decorations: true,
             ..Default::default()
         },
         antialiasing: true,
-        default_font: Some(FONT_SOURCE_CODE_PRO),
+        default_font: Some(DEFAULT_FONT),
         default_text_size: DEFAULT_FONT_SIZE,
         flags: args,
         ..Default::default()
@@ -65,27 +68,38 @@ pub fn run(args: Args) -> iced::Result {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    Fetch,
-    Cancel,
-    Prompt,
-    Install,
-    Retrieved(Result<Vec<Release>, CommandError>),
-    FilterChanged(Filter),
-    ReleaseSelected(Release),
+    // global device
     DeviceChangedAction(usb::Event),
+
+    // release specific
+    FetchReleases,
+    SelectedRelease(Release),
+    RetrievedReleases(Result<Vec<Release>, CommandError>),
+    ReleaseFilterChanged(Filter),
+
+    // prompt
+    Cancel(PathBuf),
+    EnterBootloader(PathBuf),
+    Install(Result<PathBuf, CommandError>),
+
+    // install specific
+    Download(Asset),
+    Downloaded(Result<PathBuf, CommandError>), // DownloadProgressed((usize, download::Progress)),
+                                               // InstallProgressed((usize, download::Progress)),
 }
 
 #[derive(Default)]
 pub(crate) struct Ahoy {
     debug: bool,
     error: Option<Error>,
-    device: Option<DeviceDetails>,
     filter: Filter,
     status: DeviceView,
     controls: ControlsView,
-    versions: VersionList,
-    install_modal: InstallModal,
     releases: Option<Vec<Release>>,
+    versions: VersionList,
+    connection: Option<UsbConnection>,
+    installing: bool,
+    install_modal: InstallModal,
     selected_version: Option<Release>,
 }
 
@@ -109,6 +123,7 @@ impl Application for Ahoy {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
+        // match self.
         usb::listener().map(Message::DeviceChangedAction)
     }
 
@@ -118,11 +133,11 @@ impl Application for Ahoy {
 
     fn view(&mut self) -> Element<Message> {
         // BUILD PRIMARY VIEW
-        let inner_content: Element<Message> = if let Some(device) = &self.device {
+        let inner_content: Element<Message> = if let Some(conn) = &self.connection {
             /* WHEN A DEVICE IS CONNECTED */
             Column::new()
                 .padding(DEFAULT_PADDING)
-                .push(self.status.view(&device))
+                .push(self.status.view(conn))
                 .push(Rule::horizontal(1))
                 // .push(error_message)
                 .push(self.controls.view(&self.filter))
@@ -131,6 +146,7 @@ impl Application for Ahoy {
                     &self.error,
                     &self.filter,
                     &self.releases,
+                    conn,
                     &self.selected_version,
                 ))
                 .into()
@@ -151,11 +167,11 @@ impl Application for Ahoy {
                 .width(Length::Fill)
                 .push(usb_cable_image)
                 .push(Space::with_height(Length::Units(DEFAULT_PADDING * 2)))
-                .push(Text::new("Please connect either a:").size(DEFAULT_HEADING_FONT_SIZE))
+                .push(Text::new("Please connect your").size(DEFAULT_HEADING_FONT_SIZE))
                 .push(
                     Row::new()
                         .align_items(Alignment::Center)
-                        .spacing(DEFAULT_PADDING)
+                        .spacing(DEFAULT_PADDING * 2)
                         .push(bridge6)
                         .push(Text::new("or").size(DEFAULT_HEADING_FONT_SIZE))
                         .push(bridge4),
@@ -203,6 +219,7 @@ impl Filter {
 #[derive(Debug, Clone)]
 pub enum Error {
     APIError(String),
+    InstallError(String),
 }
 
 impl From<reqwest::Error> for Error {
@@ -218,6 +235,10 @@ impl Error {
             Error::APIError(message) => {
                 error!("Unable to reach Github. Details: {}", message);
                 format!("Error reaching Github!\nRun with `-v` flag to see more details.")
+            }
+            Error::InstallError(message) => {
+                error!("{message}");
+                format!("Unable to install update: {}", message.to_owned())
             }
         }
     }

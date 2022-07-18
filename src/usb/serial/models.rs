@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Default, Debug, Clone, Deserialize)]
 pub struct DeviceDetails {
     #[serde(skip_deserializing, skip_serializing)]
     pub manufacturer: String,

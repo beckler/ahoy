@@ -1,11 +1,16 @@
 use std::fmt::Display;
 use std::io::ErrorKind;
 
+use log::*;
+
 use serialport::SerialPortInfo;
 
-use crate::{USB_BAUD_RATE, USB_TIMEOUT};
+use crate::{command::CommandError, USB_BAUD_RATE, USB_TIMEOUT};
 
-use self::commands::{Command, ControlArgs};
+use self::{
+    commands::{Command, ControlArgs},
+    models::DeviceDetails,
+};
 
 pub mod commands;
 pub mod models;
@@ -39,8 +44,8 @@ impl PirateMIDISerialDevice {
 
                     // transmit command
                     match &port.write(format!("{i},{sub_cmd}~").as_bytes()) {
-                        Ok(_written) => {
-                            // println!("bytes written: {}", &written);
+                        Ok(written) => {
+                            trace!("bytes written: {}", &written);
                         }
                         Err(ref e) if e.kind() == ErrorKind::TimedOut => (),
                         Err(e) => eprintln!("{:?}", e),
@@ -74,6 +79,26 @@ impl PirateMIDISerialDevice {
                 "serialport error: {:?}",
                 e
             ))),
+        }
+    }
+
+    pub fn get_device_details(port: SerialPortInfo) -> Result<DeviceDetails, CommandError> {
+        match Self::send(&port, Command::Check) {
+            Ok(result) => match serde_json::from_str::<DeviceDetails>(result.as_str()) {
+                Ok(mut details) => {
+                    // set manufacturer because we don't get it from the serial port
+                    details.manufacturer = match port.port_type {
+                        serialport::SerialPortType::UsbPort(usb) => {
+                            usb.manufacturer.unwrap_or_default()
+                        }
+                        _ => String::new(),
+                    };
+
+                    Ok(details)
+                }
+                Err(err) => Err(CommandError::JSONError(err.to_string())),
+            },
+            Err(err) => Err(CommandError::DeviceError(err.to_string())),
         }
     }
 }
