@@ -1,57 +1,77 @@
+use dfu_libusb::DfuLibusb;
+use log::*;
+use pirate_midi::check::CheckResponse;
+use rusb::Device;
 use std::env::temp_dir;
 use std::fs::File;
-use std::io::{copy, Cursor};
+use std::io::{self, copy, Cursor, Seek};
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
-use std::{error::Error, fmt::Display};
-
-use log::*;
 
 use octocrab::models::repos::{Asset, Release};
-use serialport::SerialPortInfo;
 
-use crate::{GITHUB_ORG, GITHUB_REPO};
+use crate::{GITHUB_ORG, GITHUB_REPO, USB_PRODUCT_DFU_ID, USB_VENDOR_ID};
 
-use crate::usb::{
-    observer::UsbDevice,
-    serial::{
-        commands::{Command, ControlArgs},
-        models::DeviceDetails,
-        PirateMIDISerialDevice,
-    },
-};
+use crate::usb::observer::UsbDevice;
+use pirate_midi::{Command, ControlArgs, PirateMIDIDevice};
 
 /// maintains connection info for the usb device
 #[derive(Clone)]
 pub struct UsbConnection {
-    pub port: SerialPortInfo,
     pub device: UsbDevice,
-    pub details: DeviceDetails,
+    pub details: CheckResponse,
 }
 
 impl UsbConnection {
-    pub fn new(port: SerialPortInfo, device: UsbDevice, details: DeviceDetails) -> UsbConnection {
-        UsbConnection {
-            port,
-            device,
-            details,
-        }
-    }
-
-    pub fn install(&self) -> Result<(), CommandError> {
-        Ok(())
+    pub fn new(device: UsbDevice, details: CheckResponse) -> UsbConnection {
+        UsbConnection { device, details }
     }
 }
 
-pub async fn enter_bootloader(conn: UsbConnection, path: PathBuf) -> Result<PathBuf, CommandError> {
-    //-> Result<DeviceDetails, CommandError>
-    match PirateMIDISerialDevice::send(&conn.port, Command::Control(ControlArgs::EnterBootloader)) {
-        Ok(result) => {
-            info!("RESULT FROM BOOTLOADER: {}", result)
-        }
-        Err(err) => error!("BOOTLOADER ERROR: {}", err),
+pub async fn install_binary<C: rusb::UsbContext>(
+    device: Device<C>,
+    binary_path: PathBuf,
+    progress: Option<impl Fn(usize) + 'static>,
+) -> Result<(), CommandError> {
+    // open the binary file and get the file size
+    let mut file = std::fs::File::open(binary_path).map_err(|e| {
+        CommandError::IOError(format!("could not open firmware file: {}", e.to_string()))
+    })?;
+    let file_size = u32::try_from(
+        file.seek(io::SeekFrom::End(0))
+            .map_err(|e| CommandError::IOError(e.to_string()))?,
+    )
+    .map_err(|e| {
+        CommandError::IOError(format!("the firmware file is too big: {}", e.to_string()))
+    })?;
+    file.seek(io::SeekFrom::Start(0))
+        .map_err(|e| CommandError::IOError(e.to_string()))?;
+
+    // open the DFU interface
+    let mut dfu_iface = DfuLibusb::open(device.context(), USB_VENDOR_ID, USB_PRODUCT_DFU_ID, 0, 0)
+        .map_err(|e| CommandError::DfuError(e.to_string()))?;
+
+    // setup our progress bar - if available
+    dfu_iface = if progress.is_some() {
+        dfu_iface.with_progress(progress.unwrap())
+    } else {
+        dfu_iface
+    };
+
+    // PERFORM THE INSTALL
+    dfu_iface
+        .download(file, file_size)
+        .map_err(|e| CommandError::DfuError(e.to_string()))
+}
+
+pub async fn enter_bootloader() -> Result<(), CommandError> {
+    match PirateMIDIDevice::new().send(Command::Control(ControlArgs::EnterBootloader)) {
+        Ok(_) => Ok(()),
+        Err(err) => Err(CommandError::DeviceError(format!(
+            "UNABLE TO ENTER BOOTLOADER: {}",
+            err
+        ))),
     }
-    Ok(path) // literally just pass it to the next message
 }
 
 /// retrieve all available github releases
@@ -92,7 +112,7 @@ pub async fn fetch_asset(asset: Asset) -> Result<PathBuf, CommandError> {
                     .duration_since(UNIX_EPOCH)
                     .unwrap()
                     .as_millis();
-                // create temp filepath
+                // create temp file
                 let temp_file_path = temp_dir().join(format!("{time}-{}", asset.name));
                 info!("downloading file to: {}", temp_file_path.display());
                 // create temp file
@@ -116,18 +136,14 @@ pub async fn fetch_asset(asset: Asset) -> Result<PathBuf, CommandError> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(thiserror::Error, Debug, Clone)]
 pub enum CommandError {
+    #[error("unable to retrieve file")]
     IOError(String),
-    JSONError(String),
+    #[error("unable to perform install")]
+    DfuError(String),
+    #[error("unable to send command to device")]
     DeviceError(String),
+    #[error("unable to fetch releases")]
     RetievalError(String),
-}
-
-impl Error for CommandError {}
-
-impl Display for CommandError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
 }

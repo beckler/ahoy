@@ -40,11 +40,14 @@ use octocrab::models::repos::{Asset, Release};
 use crate::{
     cli::{self, Args},
     command::{CommandError, UsbConnection},
+    usb::observer::UsbDevice,
 };
 
 use self::{
     element::controls::ControlsView,
-    element::{device::DeviceView, modal::InstallModal, version::VersionList},
+    element::{
+        device::DeviceView, install::InstallView, modal::ConfirmModal, version::VersionList,
+    },
     update::handle_message,
 };
 
@@ -78,9 +81,11 @@ pub enum Message {
     ReleaseFilterChanged(Filter),
 
     // prompt
-    Cancel(PathBuf),
-    EnterBootloader(PathBuf),
-    Install(Result<PathBuf, CommandError>),
+    Cancel,
+    EnterBootloader,
+    WaitForBootloader(Result<(), CommandError>),
+    Install,
+    PostInstall(Result<(), CommandError>),
 
     // install specific
     Download(Asset),
@@ -98,9 +103,12 @@ pub(crate) struct Ahoy {
     releases: Option<Vec<Release>>,
     versions: VersionList,
     connection: Option<UsbConnection>,
+    installer: InstallView,
     installing: bool,
-    install_modal: InstallModal,
+    confirm_modal: ConfirmModal,
+    dfu_connection: Option<UsbDevice>,
     selected_version: Option<Release>,
+    installable_asset: Option<PathBuf>,
 }
 
 impl Application for Ahoy {
@@ -135,21 +143,31 @@ impl Application for Ahoy {
         // BUILD PRIMARY VIEW
         let inner_content: Element<Message> = if let Some(conn) = &self.connection {
             /* WHEN A DEVICE IS CONNECTED */
-            Column::new()
-                .padding(DEFAULT_PADDING)
-                .push(self.status.view(conn))
-                .push(Rule::horizontal(1))
-                // .push(error_message)
-                .push(self.controls.view(&self.filter))
-                .push(Rule::horizontal(1))
-                .push(self.versions.view(
-                    &self.error,
-                    &self.filter,
-                    &self.releases,
-                    conn,
-                    &self.selected_version,
-                ))
-                .into()
+            if self.installing {
+                Column::new()
+                    .padding(DEFAULT_PADDING)
+                    .push(self.status.view(conn))
+                    .push(Rule::horizontal(1))
+                    .push(self.installer.view(&self.dfu_connection))
+                    .into()
+            } else {
+                // selecting a release
+                Column::new()
+                    .padding(DEFAULT_PADDING)
+                    .push(self.status.view(conn))
+                    .push(Rule::horizontal(1))
+                    // .push(error_message)
+                    .push(self.controls.view(&self.filter))
+                    .push(Rule::horizontal(1))
+                    .push(self.versions.view(
+                        &self.error,
+                        &self.filter,
+                        &self.releases,
+                        conn,
+                        &self.selected_version,
+                    ))
+                    .into()
+            }
         } else {
             /* WHEN A DEVICE IS NOT CONNECTED */
             let usb_cable_image = Svg::new(Handle::from_memory(IMAGE_USB_CABLE_LIGHT.clone()))
@@ -180,7 +198,7 @@ impl Application for Ahoy {
         };
 
         // wrap modal around the inner content
-        let modal_wrapped_content = self.install_modal.view(inner_content);
+        let modal_wrapped_content = self.confirm_modal.view(inner_content);
 
         // setup graphical debugging
         let output = if *&mut self.debug {

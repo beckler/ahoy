@@ -1,12 +1,11 @@
 use core::panic;
 use log::*;
 use rusb::{Context, Device, DeviceDescriptor, HotplugBuilder, UsbContext};
-use serialport::SerialPortInfo;
-use std::{collections::HashSet, thread, time::Duration};
+use std::{collections::HashSet, hash::Hash, thread, time::Duration};
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 
-use crate::USB_TIMEOUT;
+use crate::{USB_PRODUCT_DFU_ID, USB_PRODUCT_ID, USB_TIMEOUT, USB_VENDOR_ID};
 
 // HOT PLUG HANDLER
 
@@ -43,33 +42,35 @@ impl<T: UsbContext> Drop for HotPlugHandler<T> {
 
 // USB DEVICE
 
-#[derive(Default, Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub struct UsbDevice {
+    pub raw_device: Option<Device<Context>>,
     pub vendor_id: u16,
     pub product_id: u16,
 }
 
+impl Hash for UsbDevice {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.vendor_id.hash(state);
+        self.product_id.hash(state);
+    }
+}
+
 impl UsbDevice {
-    pub fn new(device_desc: &DeviceDescriptor) -> UsbDevice {
+    pub fn new(device: Device<Context>, device_desc: &DeviceDescriptor) -> UsbDevice {
         UsbDevice {
+            raw_device: Some(device),
             vendor_id: device_desc.vendor_id(),
             product_id: device_desc.product_id(),
         }
     }
 
-    pub fn try_get_serial_port(&self) -> Option<SerialPortInfo> {
-        match serialport::available_ports() {
-            Ok(ports) => {
-                trace!("available ports: {:?}", ports);
-                ports.iter().cloned().find(|port| match &port.port_type {
-                    serialport::SerialPortType::UsbPort(info) => {
-                        info.vid == self.vendor_id && info.pid == self.product_id
-                    }
-                    _ => false,
-                })
-            }
-            Err(_) => None,
-        }
+    pub fn is_stm_device(&self) -> bool {
+        self.vendor_id == USB_VENDOR_ID && self.product_id == USB_PRODUCT_ID
+    }
+
+    pub fn is_dfu_device(&self) -> bool {
+        self.vendor_id == USB_VENDOR_ID && self.product_id == USB_PRODUCT_DFU_ID
     }
 }
 
@@ -116,9 +117,12 @@ impl Observer {
             Ok(devices) => devices.iter().fold(vec![], |mut acc, device| {
                 let desc = match device.device_descriptor() {
                     Ok(d) => d,
-                    Err(_) => panic!("unable to get device descriptor"),
+                    Err(err) => {
+                        error!("unable to get device descriptor: {}", err);
+                        panic!("unable to continue");
+                    }
                 };
-                acc.push(UsbDevice::new(&desc));
+                acc.push(UsbDevice::new(device, &desc));
                 acc
             }),
             Err(err) => {
@@ -185,7 +189,7 @@ impl Observer {
                                     info!("connected: {:?}", device);
                                     if this
                                         .tx_event
-                                        .send(Event::Connected(UsbDevice::new(&desc)))
+                                        .send(Event::Connected(UsbDevice::new(device, &desc)))
                                         .is_err()
                                     {
                                         return;
@@ -196,7 +200,7 @@ impl Observer {
                                     info!("disconnected: {:?}", device);
                                     if this
                                         .tx_event
-                                        .send(Event::Disconnected(UsbDevice::new(&desc)))
+                                        .send(Event::Disconnected(UsbDevice::new(device, &desc)))
                                         .is_err()
                                     {
                                         return;

@@ -11,9 +11,8 @@ mod usb;
 
 // GLOBALS
 const USB_VENDOR_ID: u16 = 0x0483;
-const USB_DEVICE_ID: u16 = 0x5740;
-const USB_DEVICE_BOOTLOADER_ID: u16 = 0xdf11;
-const USB_BAUD_RATE: u32 = 9600;
+const USB_PRODUCT_ID: u16 = 0x5740;
+const USB_PRODUCT_DFU_ID: u16 = 0xDF11;
 const USB_TIMEOUT: Duration = Duration::from_secs(1);
 const GITHUB_ORG: &str = "Pirate-MIDI";
 const GITHUB_REPO: &str = "Pirate-MIDI-Features-Bug-Tracking";

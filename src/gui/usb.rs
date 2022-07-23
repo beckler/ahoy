@@ -32,10 +32,11 @@ pub fn listener() -> Subscription<Event> {
                 State::Listener(mut subscription) => {
                     let event = subscription.select_next_some().await;
                     match event {
+                        // when the app is first launched - this is all the initial connected devices
                         observer::Event::Initial(devices) => {
                             match devices
                                 .iter()
-                                .find(|device| device.try_get_serial_port().is_some())
+                                .find(|device| device.is_dfu_device() || device.is_stm_device())
                             {
                                 Some(device) => (
                                     Some(Event::Connect(device.clone())),
@@ -44,13 +45,18 @@ pub fn listener() -> Subscription<Event> {
                                 None => (None, State::Listener(subscription)),
                             }
                         }
-                        observer::Event::Connected(device) => match &device.try_get_serial_port() {
-                            Some(_) => (
-                                Some(Event::Connect(device.clone())),
-                                State::Listener(subscription),
-                            ),
-                            None => (None, State::Listener(subscription)),
-                        },
+                        // app has already launched - but detects a new device
+                        observer::Event::Connected(device) => {
+                            if device.is_dfu_device() || device.is_stm_device() {
+                                (
+                                    Some(Event::Connect(device.clone())),
+                                    State::Listener(subscription),
+                                )
+                            } else {
+                                (None, State::Listener(subscription))
+                            }
+                        }
+                        // app has already launched - but detects a disconnected device
                         observer::Event::Disconnected(device) => (
                             Some(Event::Disconnect(device)),
                             State::Listener(subscription),

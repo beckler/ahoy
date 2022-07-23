@@ -1,12 +1,11 @@
 use std::fs::remove_file;
 
+use crate::command::install_binary;
 use iced::Command;
 use log::*;
+use pirate_midi::*;
 
-use crate::{
-    command::{enter_bootloader, fetch_asset, fetch_releases, UsbConnection},
-    usb::serial::PirateMIDISerialDevice,
-};
+use crate::command::{enter_bootloader, fetch_asset, fetch_releases, UsbConnection};
 
 use super::{usb, Ahoy, Error, Message};
 
@@ -21,48 +20,6 @@ pub(crate) fn handle_message<'a>(ahoy: &mut Ahoy, message: Message) -> Command<M
                 return Command::perform(fetch_releases(), Message::RetrievedReleases);
             }
         }
-        Message::Cancel(path) => {
-            // delete the file
-            if path.exists() {
-                info!("canceled - deleting file: {}", path.display());
-                match remove_file(path) {
-                    Ok(_) => (),
-                    Err(err) => error!("unable to delete file: {}", err.to_string()),
-                }
-            }
-            ahoy.install_modal.hide()
-        }
-        Message::EnterBootloader(path) => {
-            // hide the modal
-            ahoy.install_modal.hide();
-
-            // ensure the file exists
-            if path.exists() {
-                // set the install flag to true
-                ahoy.installing = true;
-
-                // enter the bootloader
-                match &ahoy.connection {
-                    Some(conn) => {
-                        return Command::perform(
-                            enter_bootloader(conn.clone(), path),
-                            Message::Install,
-                        );
-                    }
-                    None => {
-                        ahoy.installing = false;
-                        panic!("should not be able to reach this state - so I have no idea wtf happened!")
-                    }
-                }
-            } else {
-                ahoy.error = Some(Error::InstallError(format!(
-                    "unable to locate file: {}",
-                    path.display()
-                )))
-            }
-        }
-        Message::Install(Ok(path)) => {}
-        Message::Install(Err(err)) => {}
         Message::RetrievedReleases(Ok(releases)) => {
             // grab first version that matches the filter
             ahoy.selected_version = releases
@@ -76,20 +33,31 @@ pub(crate) fn handle_message<'a>(ahoy: &mut Ahoy, message: Message) -> Command<M
         Message::RetrievedReleases(Err(err)) => ahoy.error = Some(Error::APIError(err.to_string())),
         Message::ReleaseFilterChanged(filter) => ahoy.filter = filter,
         Message::SelectedRelease(release) => ahoy.selected_version = Some(release),
+        Message::Download(asset) => {
+            return Command::perform(fetch_asset(asset), Message::Downloaded);
+        }
+        Message::Downloaded(Ok(path)) => {
+            ahoy.installable_asset = Some(path.clone());
+            ahoy.confirm_modal.show(path);
+        }
+        Message::Downloaded(Err(err)) => ahoy.error = Some(Error::APIError(err.to_string())),
         Message::DeviceChangedAction(event) => match event {
             usb::Event::Connect(device) => {
                 if ahoy.installing {
-                    // don't know what to do here
+                    // if we have a match for the expected DFU bootloader product and vendor ids, trigger the install
+                    if device.is_dfu_device() {
+                        ahoy.connection = None;
+                        ahoy.dfu_connection = Some(device);
+                        return self::handle_message(ahoy, Message::Install);
+                    }
                 } else {
-                    match device.try_get_serial_port() {
-                        Some(port) => {
-                            info!("DEVICE CONNECTED: {:?}", device);
-
-                            match PirateMIDISerialDevice::get_device_details(port.clone()) {
-                                Ok(details) => {
+                    if device.is_stm_device() {
+                        // attempt to get the device details
+                        match PirateMIDIDevice::new().send(pirate_midi::Command::Check) {
+                            Ok(response) => match response {
+                                Response::Check(details) => {
                                     info!("DEVICE DETAILS: {:?}", details);
-                                    ahoy.connection =
-                                        Some(UsbConnection::new(port, device, details));
+                                    ahoy.connection = Some(UsbConnection::new(device, details));
 
                                     // retrieve releases if we have a valid device
                                     return Command::perform(
@@ -97,14 +65,14 @@ pub(crate) fn handle_message<'a>(ahoy: &mut Ahoy, message: Message) -> Command<M
                                         Message::RetrievedReleases,
                                     );
                                 }
-                                Err(err) => {
-                                    error!("error connecting to device: {:?}", err);
-                                    ahoy.connection = None;
-                                    ahoy.releases = None;
-                                }
+                                _ => (),
+                            },
+                            Err(err) => {
+                                error!("error connecting to device: {:?}", err);
+                                ahoy.connection = None;
+                                ahoy.releases = None;
                             }
                         }
-                        None => (),
                     }
                 }
             }
@@ -117,13 +85,83 @@ pub(crate) fn handle_message<'a>(ahoy: &mut Ahoy, message: Message) -> Command<M
                 }
             }
         },
-        Message::Download(asset) => {
-            return Command::perform(fetch_asset(asset), Message::Downloaded);
+        Message::EnterBootloader => {
+            // hide the modal
+            ahoy.confirm_modal.hide();
+
+            // set the install flag to true
+            ahoy.installing = true;
+
+            // enter the bootloader - but only if we have a connected device
+            match &ahoy.connection {
+                Some(_) => {
+                    return Command::perform(enter_bootloader(), Message::WaitForBootloader);
+                }
+                None => panic!(
+                    "should not be able to reach this state - so I have no idea wtf happened"
+                ),
+            }
         }
-        Message::Downloaded(Ok(path)) => {
-            ahoy.install_modal.show(path);
+        Message::WaitForBootloader(Ok(())) => {} // do nothing but wait for the DeviceChangedAction::Connect event!
+        Message::WaitForBootloader(Err(err)) => {
+            ahoy.error = Some(Error::InstallError(err.to_string()));
+            ahoy.installing = false;
+            return self::handle_message(ahoy, Message::Cancel);
         }
-        Message::Downloaded(Err(err)) => ahoy.error = Some(Error::APIError(err.to_string())),
+        Message::Install => {
+            info!("installing!");
+
+            match &ahoy.dfu_connection {
+                Some(device) => match &device.raw_device {
+                    Some(raw_device) => {
+                        // get our firmware path
+                        let binary_path = ahoy
+                            .installable_asset
+                            .as_ref()
+                            .expect("downloaded asset went missing!");
+
+                        let progress_fn = {
+                            let installer = ahoy.installer.clone();
+                            move |count| {
+                                installer.increment_progress(count);
+                            }
+                        };
+
+                        return Command::perform(
+                            install_binary(
+                                raw_device.clone(),
+                                binary_path.to_path_buf(),
+                                Some(progress_fn),
+                            ),
+                            Message::PostInstall,
+                        );
+                    }
+                    None => return self::handle_message(ahoy, Message::Cancel),
+                },
+                None => return self::handle_message(ahoy, Message::Cancel),
+            }
+        }
+        Message::PostInstall(result) => {}
+        Message::Cancel => {
+            // cancel installation
+            ahoy.installing = false;
+            // delete the downloaded file if it exists
+            match &ahoy.installable_asset {
+                Some(asset_path) => {
+                    if asset_path.exists() {
+                        info!("canceled - deleting file: {}", asset_path.display());
+                        match remove_file(asset_path) {
+                            Ok(_) => ahoy.installable_asset = None,
+                            Err(err) => error!("unable to delete file: {}", err.to_string()),
+                        }
+                    } else {
+                        ahoy.installable_asset = None;
+                    }
+                }
+                None => (), // do nothing
+            }
+            ahoy.confirm_modal.hide()
+        }
     }
     Command::none()
 }
