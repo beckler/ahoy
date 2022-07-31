@@ -1,27 +1,22 @@
-use std::sync::{Arc, Mutex};
-
-use iced::{Alignment, Color, Column, Container, Element, Length, ProgressBar, Row, Text};
-
 use crate::{
     gui::{Message, DEFAULT_PADDING},
     usb::observer::UsbDevice,
 };
+use iced::{Alignment, Color, Column, Container, Element, Length, ProgressBar, Row, Space, Text};
+use log::*;
 
 #[derive(Default, Debug, Clone)]
 pub struct InstallView {
-    progress: Arc<Mutex<f32>>,
+    progress: f32,
 }
 
 impl InstallView {
-    pub fn increment_progress(&self, amount: usize) {
-        let mut state = self.progress.lock().unwrap();
-        *state = amount as f32;
+    pub fn increment_progress(&mut self, amount: usize) {
+        trace!("progress increment: {}", amount);
+        self.progress = amount as f32
     }
 
     pub fn view<'a>(&self, dfu: &Option<UsbDevice>) -> Element<'a, Message> {
-        // progress bar
-        let progress_bar = ProgressBar::new(0.0..=100.0, *self.progress.lock().unwrap());
-
         let status_text: Row<Message> = if dfu.is_some() {
             Row::new().push(Text::new(format!("CONNECTED")).color(Color::from_rgb8(100, 183, 93)))
         } else {
@@ -31,11 +26,18 @@ impl InstallView {
         };
 
         let message_text: Row<Message> = if dfu.is_some() {
-            Row::new().push(Text::new(format!("Installing...")))
+            Row::new().push(Text::new(format!("Erasing device and installing...")))
         } else {
             Row::new().push(Text::new(format!(
                 "Waiting for device to enter bootloader mode..."
             )))
+        };
+
+        // progress bar
+        let progress_bar: Element<Message> = if self.progress < 1.0 {
+            Space::new(Length::Units(0), Length::Units(0)).into()
+        } else {
+            ProgressBar::new(0.0..=100.0, self.progress).into()
         };
 
         let primary_column: Column<Message> = Column::new()

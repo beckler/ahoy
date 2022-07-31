@@ -2,6 +2,7 @@ mod element;
 mod style;
 mod update;
 mod usb;
+mod view;
 
 /* STATIC RESOURCES */
 // images for light mode
@@ -26,16 +27,10 @@ pub static DEFAULT_FONT_COLOR: Color = Color {
     a: 1.0,
 };
 
-use std::path::PathBuf;
-
+use iced::{window, Application, Color, Command, Element, Settings, Subscription};
 use log::*;
-
-// mod element;
-use iced::{
-    svg::Handle, window, Alignment, Application, Color, Column, Command, Container, Element,
-    Length, Row, Rule, Settings, Space, Subscription, Svg, Text,
-};
 use octocrab::models::repos::{Asset, Release};
+use std::path::PathBuf;
 
 use crate::{
     cli::{self, Args},
@@ -49,6 +44,7 @@ use self::{
         device::DeviceView, install::InstallView, modal::ConfirmModal, version::VersionList,
     },
     update::handle_message,
+    view::handle_view,
 };
 
 pub fn run(args: Args) -> iced::Result {
@@ -93,6 +89,15 @@ pub enum Message {
                                                // InstallProgressed((usize, download::Progress)),
 }
 
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Status {
+    #[default]
+    Initial,
+    InBootloader,
+    Installing,
+    Installed,
+}
+
 #[derive(Default)]
 pub(crate) struct Ahoy {
     debug: bool,
@@ -105,6 +110,7 @@ pub(crate) struct Ahoy {
     connection: Option<UsbConnection>,
     installer: InstallView,
     installing: bool,
+    post_install: bool,
     confirm_modal: ConfirmModal,
     dfu_connection: Option<UsbDevice>,
     selected_version: Option<Release>,
@@ -140,79 +146,7 @@ impl Application for Ahoy {
     }
 
     fn view(&mut self) -> Element<Message> {
-        // BUILD PRIMARY VIEW
-        let inner_content: Element<Message> = if let Some(conn) = &self.connection {
-            /* WHEN A DEVICE IS CONNECTED */
-            if self.installing {
-                Column::new()
-                    .padding(DEFAULT_PADDING)
-                    .push(self.status.view(conn))
-                    .push(Rule::horizontal(1))
-                    .push(self.installer.view(&self.dfu_connection))
-                    .into()
-            } else {
-                // selecting a release
-                Column::new()
-                    .padding(DEFAULT_PADDING)
-                    .push(self.status.view(conn))
-                    .push(Rule::horizontal(1))
-                    // .push(error_message)
-                    .push(self.controls.view(&self.filter))
-                    .push(Rule::horizontal(1))
-                    .push(self.versions.view(
-                        &self.error,
-                        &self.filter,
-                        &self.releases,
-                        conn,
-                        &self.selected_version,
-                    ))
-                    .into()
-            }
-        } else {
-            /* WHEN A DEVICE IS NOT CONNECTED */
-            let usb_cable_image = Svg::new(Handle::from_memory(IMAGE_USB_CABLE_LIGHT.clone()))
-                .height(Length::Units(400));
-
-            let bridge6 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_LIGHT.clone()))
-                .width(Length::Units(100));
-
-            let bridge4 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_LIGHT.clone()))
-                .width(Length::Units(100));
-
-            Column::new()
-                .align_items(Alignment::Center)
-                .spacing(DEFAULT_PADDING)
-                .width(Length::Fill)
-                .push(usb_cable_image)
-                .push(Space::with_height(Length::Units(DEFAULT_PADDING * 2)))
-                .push(Text::new("Please connect your").size(DEFAULT_HEADING_FONT_SIZE))
-                .push(
-                    Row::new()
-                        .align_items(Alignment::Center)
-                        .spacing(DEFAULT_PADDING * 2)
-                        .push(bridge6)
-                        .push(Text::new("or").size(DEFAULT_HEADING_FONT_SIZE))
-                        .push(bridge4),
-                )
-                .into()
-        };
-
-        // wrap modal around the inner content
-        let modal_wrapped_content = self.confirm_modal.view(inner_content);
-
-        // setup graphical debugging
-        let output = if *&mut self.debug {
-            modal_wrapped_content.explain(Color::BLACK)
-        } else {
-            modal_wrapped_content
-        };
-
-        // finally wrap everything in a container.
-        Container::new(output)
-            .height(Length::Fill)
-            .width(Length::Fill)
-            .style(style::Container::Default)
-            .into()
+        handle_view(self)
     }
 }
 

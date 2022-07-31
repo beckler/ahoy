@@ -1,8 +1,11 @@
 use std::{process::exit, time::Duration};
 
-use crate::cli::{Args, Commands};
+use crate::{
+    cli::{Args, Commands},
+    command::{enter_bootloader, install_binary},
+};
 use clap::Parser;
-use log::info;
+use log::{error, info};
 
 mod cli;
 mod command;
@@ -43,8 +46,74 @@ fn main() {
     // execute!
     match args.command {
         Some(cmd) => match cmd {
-            Commands::List => todo!(),
-            Commands::Install => todo!(),
+            // Commands::List => todo!(),
+            Commands::Install(args) => tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap()
+                .block_on(async {
+                    // get file size
+                    let file_size = match args.file.metadata() {
+                        Ok(meta) => meta.len(),
+                        Err(err) => {
+                            error!("unable to retrieve file size: {}", err);
+                            std::process::exit(0x0200);
+                        }
+                    };
+                    info!("binary size: {}", file_size);
+
+                    // enter bootloader
+                    println!("entering bootloader mode...");
+                    match enter_bootloader().await {
+                        Ok(_) => (), // continue
+                        Err(err) => {
+                            error!("device unable to enter bootloader mode: {}", err);
+                            std::process::exit(0x0300);
+                        }
+                    };
+
+                    // sleep to wait for bootloader mode
+                    println!("pausing thread for 3 seconds to wait for bootloader mode...");
+                    std::thread::sleep(Duration::from_secs(3));
+
+                    // attempt install
+                    println!("installing...");
+
+                    // create progress bar
+                    let bar = indicatif::ProgressBar::new(file_size as u64);
+                    bar.set_style(
+                        indicatif::ProgressStyle::default_bar()
+                            .template(
+                                "{spinner:.green} [{elapsed_precise}] [{bar:27.cyan/blue}] \
+                            {bytes}/{total_bytes} ({bytes_per_sec}) ({eta}) {msg:10}",
+                            )
+                            .unwrap()
+                            .progress_chars("#>-"),
+                    );
+
+                    let install_result = install_binary(
+                        args.file,
+                        Some({
+                            let bar = bar.clone();
+                            move |count| {
+                                bar.inc(count as u64);
+                            }
+                        }),
+                    )
+                    .await;
+
+                    // handle results
+                    match install_result {
+                        Ok(_) => (),
+                        Err(err) => {
+                            error!("unable to install: {:?}", err);
+                            std::process::exit(0x0400);
+                        }
+                    }
+
+                    // finish progress bar
+                    bar.finish();
+                }),
         },
         None => {
             // Start the GUI

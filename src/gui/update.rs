@@ -9,7 +9,7 @@ use crate::command::{enter_bootloader, fetch_asset, fetch_releases, UsbConnectio
 
 use super::{usb, Ahoy, Error, Message};
 
-pub(crate) fn handle_message<'a>(ahoy: &mut Ahoy, message: Message) -> Command<Message> {
+pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Message> {
     match message {
         Message::FetchReleases => {
             ahoy.error = None;
@@ -46,7 +46,6 @@ pub(crate) fn handle_message<'a>(ahoy: &mut Ahoy, message: Message) -> Command<M
                 if ahoy.installing {
                     // if we have a match for the expected DFU bootloader product and vendor ids, trigger the install
                     if device.is_dfu_device() {
-                        ahoy.connection = None;
                         ahoy.dfu_connection = Some(device);
                         return self::handle_message(ahoy, Message::Install);
                     }
@@ -69,8 +68,7 @@ pub(crate) fn handle_message<'a>(ahoy: &mut Ahoy, message: Message) -> Command<M
                             },
                             Err(err) => {
                                 error!("error connecting to device: {:?}", err);
-                                ahoy.connection = None;
-                                ahoy.releases = None;
+                                return self::handle_message(ahoy, Message::Cancel);
                             }
                         }
                     }
@@ -112,39 +110,38 @@ pub(crate) fn handle_message<'a>(ahoy: &mut Ahoy, message: Message) -> Command<M
             info!("installing!");
 
             match &ahoy.dfu_connection {
-                Some(device) => match &device.raw_device {
-                    Some(raw_device) => {
-                        // get our firmware path
-                        let binary_path = ahoy
-                            .installable_asset
-                            .as_ref()
-                            .expect("downloaded asset went missing!");
+                // we only care that the connection exists
+                Some(_) => {
+                    // get our firmware path
+                    let binary_path = ahoy
+                        .installable_asset
+                        .as_ref()
+                        .expect("downloaded asset went missing!");
 
-                        let progress_fn = {
-                            let installer = ahoy.installer.clone();
-                            move |count| {
-                                installer.increment_progress(count);
-                            }
-                        };
+                    let progress_fn = {
+                        let mut installer = ahoy.installer.clone();
+                        move |count| {
+                            installer.increment_progress(count);
+                        }
+                    };
 
-                        return Command::perform(
-                            install_binary(
-                                raw_device.clone(),
-                                binary_path.to_path_buf(),
-                                Some(progress_fn),
-                            ),
-                            Message::PostInstall,
-                        );
-                    }
-                    None => return self::handle_message(ahoy, Message::Cancel),
-                },
+                    return Command::perform(
+                        install_binary(binary_path.to_path_buf(), Some(progress_fn)),
+                        Message::PostInstall,
+                    );
+                }
                 None => return self::handle_message(ahoy, Message::Cancel),
             }
         }
-        Message::PostInstall(result) => {}
-        Message::Cancel => {
-            // cancel installation
+        Message::PostInstall(result) => {
             ahoy.installing = false;
+            ahoy.post_install = true;
+            info!("post-install result: {:?}", result);
+        }
+        Message::Cancel => {
+            // reset the model
+            ahoy.installing = false;
+            ahoy.post_install = false;
             // delete the downloaded file if it exists
             match &ahoy.installable_asset {
                 Some(asset_path) => {
@@ -160,7 +157,8 @@ pub(crate) fn handle_message<'a>(ahoy: &mut Ahoy, message: Message) -> Command<M
                 }
                 None => (), // do nothing
             }
-            ahoy.confirm_modal.hide()
+            // hide the modal
+            ahoy.confirm_modal.hide();
         }
     }
     Command::none()

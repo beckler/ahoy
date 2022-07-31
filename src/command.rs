@@ -1,7 +1,6 @@
 use dfu_libusb::DfuLibusb;
 use log::*;
 use pirate_midi::check::CheckResponse;
-use rusb::Device;
 use std::env::temp_dir;
 use std::fs::File;
 use std::io::{self, copy, Cursor, Seek};
@@ -28,11 +27,14 @@ impl UsbConnection {
     }
 }
 
-pub async fn install_binary<C: rusb::UsbContext>(
-    device: Device<C>,
+pub async fn install_binary(
     binary_path: PathBuf,
-    progress: Option<impl Fn(usize) + 'static>,
+    progress: Option<impl FnMut(usize) + 'static>,
 ) -> Result<(), CommandError> {
+    // create new usb context
+    let context = rusb::Context::new().map_err(|e| {
+        CommandError::DeviceError(format!("unable to create usb context: {}", e.to_string()))
+    })?;
     // open the binary file and get the file size
     let mut file = std::fs::File::open(binary_path).map_err(|e| {
         CommandError::IOError(format!("could not open firmware file: {}", e.to_string()))
@@ -48,15 +50,13 @@ pub async fn install_binary<C: rusb::UsbContext>(
         .map_err(|e| CommandError::IOError(e.to_string()))?;
 
     // open the DFU interface
-    let mut dfu_iface = DfuLibusb::open(device.context(), USB_VENDOR_ID, USB_PRODUCT_DFU_ID, 0, 0)
+    let mut dfu_iface = DfuLibusb::open(&context, USB_VENDOR_ID, USB_PRODUCT_DFU_ID, 0, 0)
         .map_err(|e| CommandError::DfuError(e.to_string()))?;
 
     // setup our progress bar - if available
-    dfu_iface = if progress.is_some() {
-        dfu_iface.with_progress(progress.unwrap())
-    } else {
-        dfu_iface
-    };
+    if progress.is_some() {
+        dfu_iface.with_progress(progress.unwrap());
+    }
 
     // PERFORM THE INSTALL
     dfu_iface
