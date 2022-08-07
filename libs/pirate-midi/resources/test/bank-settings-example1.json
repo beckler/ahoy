@@ -1,0 +1,898 @@
+{
+  "bankIndex": 0,
+  "bankName": "My Bank",
+  "bankId": "00000000",
+  "bankMessages": {
+    "numMessages": 2,
+    "messages": [
+      {
+        "statusByte": "90",
+        "dataByte1": "30",
+        "dataByte2": "20",
+        "outputs": {
+          "midi0": true,
+          "flexi1": true,
+          "flexi2": true,
+          "usb": true
+        }
+      },
+      {
+        "statusByte": "b0",
+        "dataByte1": "35",
+        "dataByte2": "22",
+        "outputs": {
+          "midi0": false,
+          "flexi1": true,
+          "flexi2": false,
+          "usb": false
+        }
+      }
+    ]
+  },
+  "expMessages": [
+    {
+      "numMessages": 1,
+      "messages": [
+        {
+          "minLimit": 0,
+          "maxLimit": 127,
+          "sweep": "linear",
+          "statusByte": "b0",
+          "dataByte1": "30",
+          "outputs": {
+            "midi0": true,
+            "flexi1": true,
+            "flexi2": true,
+            "usb": true
+          }
+        }
+      ]
+    },
+    {
+      "numMessages": 0,
+      "messages": []
+    },
+    {
+      "numMessages": 2,
+      "messages": [
+        {
+          "minLimit": 0,
+          "maxLimit": 127,
+          "sweep": "log",
+          "statusByte": "b0",
+          "dataByte1": "30",
+          "outputs": {
+            "midi0": true,
+            "flexi1": true,
+            "flexi2": true,
+            "usb": true
+          }
+        },
+        {
+          "minLimit": 5,
+          "maxLimit": 127,
+          "sweep": "linear",
+          "statusByte": "b0",
+          "dataByte1": "30",
+          "outputs": {
+            "midi0": true,
+            "flexi1": true,
+            "flexi2": true,
+            "usb": true
+          }
+        }
+      ]
+    },
+    {
+      "numMessages": 0,
+      "messages": []
+    }
+  ],
+  "switchGroups": [
+    [
+      {
+        "switch": 0,
+        "isPrimary": true,
+        "broadcastMode": "txRx",
+        "respondTo": "onOff",
+        "responseType": "off"
+      },
+      {
+        "switch": 0,
+        "isPrimary": false,
+        "broadcastMode": "txRx",
+        "respondTo": "onOff",
+        "responseType": "off"
+      }
+    ],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ],
+  "auxMessages": [
+    {
+      "tip": {
+        "pressMessages": {
+          "numMessages": 0,
+          "messages": []
+        },
+        "holdMessages": {
+          "numMessages": 0,
+          "messages": []
+        }
+      },
+      "ring": {
+        "pressMessages": {
+          "numMessages": 0,
+          "messages": []
+        },
+        "holdMessages": {
+          "numMessages": 0,
+          "messages": []
+        }
+      },
+      "tipRing": {
+        "pressMessages": {
+          "numMessages": 0,
+          "messages": []
+        },
+        "holdMessages": {
+          "numMessages": 0,
+          "messages": []
+        }
+      }
+    },
+    {
+      "tip": {
+        "pressMessages": {
+          "numMessages": 0,
+          "messages": []
+        },
+        "holdMessages": {
+          "numMessages": 0,
+          "messages": []
+        }
+      },
+      "ring": {
+        "pressMessages": {
+          "numMessages": 0,
+          "messages": []
+        },
+        "holdMessages": {
+          "numMessages": 0,
+          "messages": []
+        }
+      },
+      "tipRing": {
+        "pressMessages": {
+          "numMessages": 0,
+          "messages": []
+        },
+        "holdMessages": {
+          "numMessages": 0,
+          "messages": []
+        }
+      }
+    }
+  ],
+  "footswitches": [
+    {
+      "name": "FS 1",
+      "primaryState": true,
+      "secondaryState": false,
+      "primaryMode": "toggle",
+      "secondaryMode": "holdToggle",
+      "primaryColor": "f08080",
+      "secondaryColor": "00ffff",
+      "primaryLedMode": "onOff",
+      "secondaryLedMode": "dim",
+      "stepInterval": 1,
+      "minScrollLimit": 0,
+      "maxScrollLimit": 127,
+      "sequentialPattern": "forward",
+      "sequentialRepeat": "all",
+      "sequentialSendMode": "always",
+      "linkedSwitch": 0,
+      "numSteps": 0,
+      "numSequentialMessages": [],
+      "sequentialLabels": [],
+      "sequentialColours": [],
+      "currentStep": 0,
+      "midiClock": 0,
+      "toggleOnMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "toggleOffMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "secondaryToggleOnMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "secondaryToggleOffMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "pressMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "releaseMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "doublePressMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "holdMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "holdReleaseMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "lfo": {
+        "state": false,
+        "frequency": "1.0",
+        "minLimit": 0,
+        "maxLimit": 127,
+        "trigger": "secondary",
+        "messages": "holdRelease",
+        "waveform": "sine",
+        "resolution": 1,
+        "resetOnStop": true,
+        "clock": null
+      }
+    },
+    {
+      "name": "FS 2",
+      "primaryState": true,
+      "secondaryState": false,
+      "primaryMode": "sequential",
+      "secondaryMode": "holdToggle",
+      "primaryColor": "f08080",
+      "secondaryColor": "00ffff",
+      "primaryLedMode": "onOff",
+      "secondaryLedMode": "dim",
+      "stepInterval": 1,
+      "minScrollLimit": 0,
+      "maxScrollLimit": 127,
+      "sequentialPattern": "forward",
+      "sequentialRepeat": "all",
+      "sequentialSendMode": "always",
+      "linkedSwitch": 0,
+      "numSteps": 5,
+      "numSequentialMessages": [
+        2,
+        3,
+        1,
+        1,
+        4
+      ],
+      "sequentialLabels": [
+        "Guitar1",
+        "Synth",
+        "Bass",
+        "Guitar2",
+        "Keyboard"
+      ],
+      "sequentialColours": [
+        "ed823e",
+        "ff00ff",
+        "00ffff",
+        "9cc9e8",
+        "000000"
+      ],
+      "currentStep": 0,
+      "midiClock": 0,
+      "toggleOnMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "toggleOffMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "secondaryToggleOnMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "secondaryToggleOffMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "pressMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "releaseMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "doublePressMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "holdMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "holdReleaseMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "lfo": {
+        "state": null,
+        "frequency": "1.0",
+        "minLimit": 0,
+        "maxLimit": 127,
+        "trigger": "primary",
+        "messages": null,
+        "waveform": "sine",
+        "resolution": 1,
+        "resetOnStop": true,
+        "clock": null
+      }
+    },
+    {
+      "name": "FS 3",
+      "primaryState": true,
+      "secondaryState": false,
+      "primaryMode": "toggle",
+      "secondaryMode": "holdToggle",
+      "primaryColor": "f08080",
+      "secondaryColor": "00ffff",
+      "primaryLedMode": "onOff",
+      "secondaryLedMode": "dim",
+      "stepInterval": 1,
+      "minScrollLimit": 0,
+      "maxScrollLimit": 127,
+      "sequentialPattern": "forward",
+      "sequentialRepeat": "all",
+      "sequentialSendMode": "always",
+      "linkedSwitch": 0,
+      "numSteps": 0,
+      "numSequentialMessages": [],
+      "sequentialLabels": [],
+      "sequentialColours": [],
+      "currentStep": 0,
+      "midiClock": 0,
+      "toggleOnMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "toggleOffMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "secondaryToggleOnMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "secondaryToggleOffMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "pressMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "releaseMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "doublePressMessages": {
+        "numMessages": 0,
+        "messages": []
+      },
+      "holdMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "holdReleaseMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "lfo": {
+        "state": true,
+        "frequency": "1.0",
+        "minLimit": 0,
+        "maxLimit": 127,
+        "trigger": "secondary",
+        "messages": "toggleOn",
+        "waveform": "sine",
+        "resolution": 1,
+        "resetOnStop": true,
+        "clock": 0
+      }
+    },
+    {
+      "name": "FS 4",
+      "primaryState": true,
+      "secondaryState": false,
+      "primaryMode": "toggle",
+      "secondaryMode": "holdToggle",
+      "primaryColor": "f08080",
+      "secondaryColor": "00ffff",
+      "primaryLedMode": "onOff",
+      "secondaryLedMode": "dim",
+      "stepInterval": 1,
+      "minScrollLimit": 0,
+      "maxScrollLimit": 127,
+      "sequentialPattern": "forward",
+      "sequentialRepeat": "all",
+      "sequentialSendMode": "always",
+      "linkedSwitch": 0,
+      "numSteps": 0,
+      "numSequentialMessages": [],
+      "sequentialLabels": [],
+      "sequentialColours": [],
+      "currentStep": 0,
+      "midiClock": 0,
+      "toggleOnMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "toggleOffMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "secondaryToggleOnMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "secondaryToggleOffMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "pressMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "90",
+            "dataByte1": "3f",
+            "dataByte2": "64",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "releaseMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "doublePressMessages": {
+        "numMessages": 0,
+        "messages": []
+      },
+      "holdMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "holdReleaseMessages": {
+        "numMessages": 1,
+        "messages": [
+          {
+            "statusByte": "80",
+            "dataByte1": "3f",
+            "dataByte2": "0",
+            "outputs": {
+              "midi0": true,
+              "flexi1": true,
+              "flexi2": true,
+              "usb": false
+            }
+          }
+        ]
+      },
+      "lfo": {
+        "state": null,
+        "frequency": "1.0",
+        "minLimit": 0,
+        "maxLimit": 127,
+        "trigger": "primary",
+        "messages": null,
+        "waveform": "sine",
+        "resolution": 1,
+        "resetOnStop": true,
+        "clock": 0
+      }
+    }
+  ]
+}

@@ -18,7 +18,7 @@ iced_native = "0.5.1"
 indicatif = "0.17.0"
 log = "0.4.17"
 octocrab = "0.16.0"
-pirate-midi = { version = "0.1.0", path = "../pirate-midi" }
+pirate-midi = { version = "0.1.0", path = "./libs/pirate-midi" }
 reqwest = { version = "0.11.11", features = ["json", "rustls-tls"] }
 rusb = "0.9.1"
 serde = { version = "1.0.140", features = ["derive"] }

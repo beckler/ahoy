@@ -89,14 +89,14 @@ pub enum Message {
                                                // InstallProgressed((usize, download::Progress)),
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Status {
-    #[default]
-    Initial,
-    InBootloader,
-    Installing,
-    Installed,
-}
+// #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+// pub enum Status {
+//     #[default]
+//     Initial,
+// InBootloader,
+// Installing,
+// Installed,
+// }
 
 #[derive(Default)]
 pub(crate) struct Ahoy {

@@ -1,0 +1,248 @@
+{
+    "currentBank": 0,
+    "midiChannel": 3,
+    "ledBrightness": 2,
+    "flexi1Mode": "midiOutTypeA",
+    "flexi2Mode": "expSingle",
+    "uiMode": "standard",
+    "preserveStates": true,
+    "sendStates": false,
+    "bankPcMidiOutputs": {
+        "midi0": 0,
+        "flexi1": 1,
+        "flexi2": 16,
+        "usb": 4
+    },
+    "bankTemplateIndex": 69,
+    "deviceName": "My Bridge4",
+    "profileId": "b0268a",
+    "customLedColours": [
+        "ff1d58",
+        "f75990",
+        "fff685",
+        "349b7",
+        "9fbd3",
+        "560a86",
+        "e8e500",
+        "feca",
+        "ffdef3",
+        "13ca91",
+        "27a9f",
+        "ff2079"
+    ],
+    "midiClocks": [
+        {
+            "outputs": {
+                "midi0": false,
+                "flexi1": true,
+                "flexi2": true,
+                "usb": false
+            }
+        },
+        {
+            "outputs": {
+                "midi0": false,
+                "flexi1": true,
+                "flexi2": true,
+                "usb": false
+            }
+        }
+    ],
+    "flexi1ThruHandles": {
+        "midi0": true,
+        "flexi1": true,
+        "flexi2": true,
+        "usb": true
+    },
+    "flexi2ThruHandles": {
+        "midi0": true,
+        "flexi1": false,
+        "flexi2": false,
+        "usb": false
+    },
+    "midi0ThruHandles": {
+        "midi0": false,
+        "flexi1": true,
+        "flexi2": true,
+        "usb": false
+    },
+    "usbThruHandles": {
+        "midi0": true,
+        "flexi1": true,
+        "flexi2": false,
+        "usb": false
+    },
+    "expMessages": [
+        {
+            "numMessages": 1,
+            "messages": [
+                {
+                    "minLimit": 0,
+                    "maxLimit": 127,
+                    "sweep": "linear",
+                    "statusByte": "b0",
+                    "dataByte1": "30",
+                    "outputs": {
+                        "midi0": true,
+                        "flexi1": true,
+                        "flexi2": true,
+                        "usb": true
+                    }
+                }
+            ]
+        },
+        {
+            "numMessages": 0,
+            "messages": []
+        },
+        {
+            "numMessages": 2,
+            "messages": [
+                {
+                    "minLimit": 0,
+                    "maxLimit": 127,
+                    "sweep": "log",
+                    "statusByte": "b0",
+                    "dataByte1": "30",
+                    "outputs": {
+                        "midi0": true,
+                        "flexi1": true,
+                        "flexi2": true,
+                        "usb": true
+                    }
+                },
+                {
+                    "minLimit": 5,
+                    "maxLimit": 127,
+                    "sweep": "linear",
+                    "statusByte": "b0",
+                    "dataByte1": "30",
+                    "outputs": {
+                        "midi0": true,
+                        "flexi1": true,
+                        "flexi2": true,
+                        "usb": true
+                    }
+                }
+            ]
+        },
+        {
+            "numMessages": 0,
+            "messages": []
+        }
+    ],
+    "auxMessages": [
+        {
+            "tip": {
+                "pressMessages": {
+                    "numMessages": 1,
+                    "messages": [
+                        {
+                            "statusByte": "b0",
+                            "dataByte1": "3f",
+                            "dataByte2": "64",
+                            "outputs": {
+                                "midi0": true,
+                                "flexi1": true,
+                                "flexi2": true,
+                                "usb": false
+                            }
+                        }
+                    ]
+                },
+                "holdMessages": {
+                    "numMessages": 0,
+                    "messages": []
+                }
+            },
+            "ring": {
+                "pressMessages": {
+                    "numMessages": 1,
+                    "messages": [
+                        {
+                            "statusByte": "b0",
+                            "dataByte1": "3e",
+                            "dataByte2": "29",
+                            "outputs": {
+                                "midi0": true,
+                                "flexi1": true,
+                                "flexi2": true,
+                                "usb": false
+                            }
+                        }
+                    ]
+                },
+                "holdMessages": {
+                    "numMessages": 0,
+                    "messages": []
+                }
+            },
+            "tipRing": {
+                "pressMessages": {
+                    "numMessages": 1,
+                    "messages": [
+                        {
+                            "statusByte": "b0",
+                            "dataByte1": "2f",
+                            "dataByte2": "10",
+                            "outputs": {
+                                "midi0": true,
+                                "flexi1": true,
+                                "flexi2": true,
+                                "usb": false
+                            }
+                        }
+                    ]
+                },
+                "holdMessages": {
+                    "numMessages": 1,
+                    "messages": [
+                        {
+                            "statusByte": "b0",
+                            "dataByte1": "1f",
+                            "dataByte2": "10",
+                            "outputs": {
+                                "midi0": true,
+                                "flexi1": true,
+                                "flexi2": true,
+                                "usb": false
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "tip": {
+                "pressMessages": {
+                    "numMessages": 0,
+                    "messages": []
+                },
+                "holdMessages": {
+                    "numMessages": 0,
+                    "messages": []
+                }
+            },
+            "ring": {
+                "pressMessages": {
+                    "numMessages": 0,
+                    "messages": []
+                },
+                "holdMessages": {
+                    "numMessages": 0,
+                    "messages": []
+                }
+            },
+            "tipRing": {
+                "pressMessages": {
+                    "numMessages": 0,
+                    "messages": []
+                },
+                "holdMessages": {
+                    "numMessages": 0,
+                    "messages": []
+                }
+            }
+        }
+    ]
+}
