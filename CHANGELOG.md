@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/beckler/ahoy/compare/v0.2.0...v0.2.1) (2022-08-07)
+
+
+### Bug Fixes
+
+* added pkg-config vars to build script ([fd2322b](https://github.com/beckler/ahoy/commit/fd2322b910422df51095cf565242bdfbdc426086))
+
 ## [0.2.0](https://github.com/beckler/ahoy/compare/v0.1.0...v0.2.0) (2022-08-07)
 
 
