@@ -112,7 +112,7 @@ jobs:
         uses: actions-rs/cargo@v1.0.3
         with:
           command: build
-          args: --release --locked --target ${{ matrix.target }}
+          args: --release --target ${{ matrix.target }}
           use-cross: ${{ matrix.os == 'ubuntu-latest' }}
 
       - name: Build | Installer [Windows]
