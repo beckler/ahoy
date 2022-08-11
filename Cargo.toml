@@ -27,27 +27,3 @@ serialport = "4.2.0"
 stderrlog = "0.5.3"
 thiserror = "1.0.31"
 tokio = { version = "1.20.1", features = ["sync"] }
-
-[target.x86_64-apple-darwin]
-rustflags = [
-  "-C", "link-arg=-undefined",
-  "-C", "link-arg=dynamic_lookup",
-  "-C", "target-feature=+crt-static",
-]
-
-[target.aarch64-apple-darwin]
-rustflags = [
-  "-C", "link-arg=-undefined",
-  "-C", "link-arg=dynamic_lookup",
-  "-C", "target-feature=+crt-static",
-]
-
-[target.x86_64-pc-windows-msvc]
-rustflags = [
-  "-C", "target-feature=+crt-static",
-]
-
-[target.x86_64-unknown-linux-gnu]
-rustflags = [
-  "-C", "target-feature=-crt-static",
-]
