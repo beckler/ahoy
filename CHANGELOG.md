@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/beckler/ahoy/compare/v0.2.2...v0.2.3) (2022-08-11)
+
+
+### Bug Fixes
+
+* small updates, more build pipeline changes ([740364b](https://github.com/beckler/ahoy/commit/740364b7615c256fafb7e70c2adf10232e9de296))
+
 ## [0.2.2](https://github.com/beckler/ahoy/compare/v0.2.1...v0.2.2) (2022-08-11)
 
 
