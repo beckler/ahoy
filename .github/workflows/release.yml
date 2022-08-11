@@ -9,11 +9,6 @@ env:
   RUST_BACKTRACE: short
   RUSTUP_MAX_RETRIES: 10
   MACOSX_DEPLOYMENT_TARGET: 10.7
-  SYSROOT: "/build/root"
-  PKG_CONFIG_DIR: ""
-  PKG_CONFIG_LIBDIR: "${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig"
-  PKG_CONFIG_SYSROOT_DIR: "${SYSROOT}"
-  PKG_CONFIG_ALLOW_CROSS: 1
 
 jobs:
   # Update release PR
@@ -39,21 +34,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - target: x86_64-unknown-linux-gnu
-          #   os: ubuntu-latest
-          #   name: ahoy-x86_64-unknown-linux-gnu.tar.gz
-
-          # - target: x86_64-unknown-linux-musl
-          #   os: ubuntu-latest
-          #   name: ahoy-x86_64-unknown-linux-musl.tar.gz
-
-          # - target: i686-unknown-linux-musl
-          #   os: ubuntu-latest
-          #   name: ahoy-i686-unknown-linux-musl.tar.gz
-
-          # - target: aarch64-unknown-linux-musl
-          #   os: ubuntu-latest
-          #   name: ahoy-aarch64-unknown-linux-musl.tar.gz
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            name: ahoy-x86_64-unknown-linux-gnu.tar.gz
+            rustflags: -C target-feature=+crt-static
 
           - target: x86_64-apple-darwin
             os: macOS-11
@@ -84,6 +68,11 @@ jobs:
     continue-on-error: true
     env:
       RUSTFLAGS: ${{ matrix.rustflags || '' }}
+      SYSROOT: "/build/root"
+      PKG_CONFIG_DIR: ""
+      PKG_CONFIG_LIBDIR: "${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig"
+      PKG_CONFIG_SYSROOT_DIR: "${SYSROOT}"
+      PKG_CONFIG_ALLOW_CROSS: 1
     steps:
       - uses: actions/checkout@v3
       - name: Setup | Rust
@@ -107,6 +96,11 @@ jobs:
         continue-on-error: true
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y pkg-config libudev-dev libusb-1.0-0-dev
+
+      - name: Setup | Install libusb [macOS]
+        continue-on-error: true
+        if: matrix.os == 'macOS-11'
+        run: brew install libusb
 
       - name: Build | Build
         uses: actions-rs/cargo@v1.0.3

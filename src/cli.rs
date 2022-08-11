@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 
 /// Update the firmware for Pirate MIDI devices
-/// * Run with no arguments or commands to start the GUI *
+/// * Run with no commands to start the GUI *
 #[derive(Default, Parser, Debug)]
 #[clap(author, version, about, long_about = None, verbatim_doc_comment)]
 pub struct Args {
