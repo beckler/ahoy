@@ -30,7 +30,7 @@ Use this guide for your specific machine:
   - Apple Silicon 
     - `aarch64-apple-darwin`
   - Intel
-    - [***untested**] `x86_64-apple-darwin`
+    - `x86_64-apple-darwin`
 - Linux ([read caviet](#linux-caviet))
   - Intel/AMD
     - [***not yet available, still figureing out build issues**] `x86_64-unknown-linux-gnu`
