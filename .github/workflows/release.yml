@@ -37,32 +37,18 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             name: ahoy-x86_64-unknown-linux-gnu.tar.gz
-            rustflags: -C target-feature=+crt-static
 
           - target: x86_64-apple-darwin
             os: macOS-11
             name: ahoy-x86_64-apple-darwin.tar.gz
-            rustflags: -C target-feature=+crt-static
 
           - target: aarch64-apple-darwin
             os: macOS-11
             name: ahoy-aarch64-apple-darwin.tar.gz
-            rustflags: -C target-feature=+crt-static
 
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             name: ahoy-x86_64-pc-windows-msvc.zip
-            rustflags: -C target-feature=+crt-static
-
-          - target: i686-pc-windows-msvc
-            os: windows-latest
-            name: ahoy-i686-pc-windows-msvc.zip
-            rustflags: -C target-feature=+crt-static
-
-          - target: aarch64-pc-windows-msvc
-            os: windows-latest
-            name: ahoy-aarch64-pc-windows-msvc.zip
-            rustflags: -C target-feature=+crt-static
 
     runs-on: ${{ matrix.os }}
     continue-on-error: true

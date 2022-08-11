@@ -32,12 +32,12 @@ Use this guide for your specific machine:
     -  [***untested**] `x86_64-pc-windows-msvc`
   - ARM
     - [***untested**] `aarch64-pc-windows-msvc`
-- macOS
+- macOS ([read caviet](#macos-caviet))
   - Apple Silicon 
     - `aarch64-apple-darwin`
   - Intel
     - [***untested**] `x86_64-apple-darwin`
-- Linux
+- Linux ([read caviet](#linux-caviet))
   - Intel/AMD
     - [***untested**] `x86_64-unknown-linux-gnu`
 
@@ -50,6 +50,10 @@ If this happens, right click the executable, and then explicitly click "Open".
 
 You can [read more about this here](https://support.apple.com/en-us/HT202491).
 
+### Linux Caviet
+
+You need `libusb` to run this, and due to some build issues, it's dynamically linked (instead of static like the builds for other OS's). If you don't have it installed, run the following (ubuntu flavored): `apt-get install pkg-config libudev-dev libusb-1.0-0-dev`
+
 ### Building Locally
 
 - Open your preferred terminal/console/shell
@@ -58,5 +62,5 @@ You can [read more about this here](https://support.apple.com/en-us/HT202491).
 - Navigate to where you cloned/downloaded this repo and run the command: `cargo run`
 - (**Possibly Required**) If you're having issues with a missing library, this does require `libusb` and any additional requirements that library requires. You can download and install it [from here](https://libusb.info/), or via a package manager:
   - (macOS): `brew install libusb`
-  - (linux): `apt install pkg-config libudev-dev libusb-1.0-0-dev`
+  - (linux): `apt-get install pkg-config libudev-dev libusb-1.0-0-dev`
 
