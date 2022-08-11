@@ -1,22 +1,16 @@
 # Ahoy
 
-Ahoy is an easy-to-use cross-platform executable designed to update the firmware for [Pirate MIDI](https://www.piratemidi.com) Bridge devices.
+Ahoy is a (hopefully) easy-to-use cross-platform executable designed to update the firmware for [Pirate MIDI](https://www.piratemidi.com) Bridge devices.
  
 It's written in [Rust](https://www.rust-lang.org), and offers a CLI and GUI. For the GUI, it uses the [iced-rs](https://github.com/iced-rs/iced) framework.
 
 ## Status
 
 **THIS SOFTWARE SHOULD BE CONSIDERED ALPHA, AND AS SUCH IS POSSIBLY UNSTABLE.**
- 
-### Device Recovery 
 
-Luckily if you're concerned, or believe you may have bricked your device, there is a path to reapply the update! The creators of the Bridge devices had great foresight for this exact issue, and you should do the following:
+If you're concerned, or believe you may have bricked your device, please read the section: [Device Recovery](#device-recovery)
 
-1. **DON'T PANIC**
-2. Hold FS6 while plugging in a USB cable.
-    1. For the Bridge4, hold FS4 (**Note**: _I have not personally verified this, as I have the Bridge6, please submit an issue or PR if you're able to confirm_) 
-3. Wait about 10-15 seconds, as the device won't appear to do anything.
-4. As a backup method, use the `dfu-util` command as [laid out here](https://learn.piratemidi.com/software/downloads) (click "Details & Instructions").
+With that being said, I created this initially was a way for me learn about the handful of technologies involved. From the GUI, to the build process: this is mostly experimental. However, I like to create things with a purpose, and so I feel comfortable releasing it in it's current state, but there are a few more features I would like to implement as time permits.
 
 ## Getting Started
 
@@ -39,7 +33,7 @@ Use this guide for your specific machine:
     - [***untested**] `x86_64-apple-darwin`
 - Linux ([read caviet](#linux-caviet))
   - Intel/AMD
-    - [***untested**] `x86_64-unknown-linux-gnu`
+    - [***not yet available, still figureing out build issues**] `x86_64-unknown-linux-gnu`
 
 _If you're able to verify these work on the specificed OS/Arch, please let me know via an Issue or PR, as I'm not readily able to verify them myself!_
 
@@ -64,3 +58,14 @@ You need `libusb` to run this, and due to some build issues, it's dynamically li
   - (macOS): `brew install libusb`
   - (linux): `apt-get install pkg-config libudev-dev libusb-1.0-0-dev`
 
+## Feature Roadmap
+
+## Device Recovery 
+
+If you're concerned, or believe you may have bricked your device, there is a path to reapply the update! The creators of the Bridge devices had great foresight for this exact issue, and you should do the following:
+
+1. **DON'T PANIC**
+2. Hold FS6 while plugging in a USB cable.
+    1. For the Bridge4, hold FS4 (**Note**: _This is just a guess, as I have not personally verified this since I have the Bridge6, please submit an issue or PR if you're able to confirm_) 
+3. Wait about 10-15 seconds, as the device won't appear to do anything.
+4. As a backup method, use the `dfu-util` command as [laid out here](https://learn.piratemidi.com/software/downloads) (click "Details & Instructions").
