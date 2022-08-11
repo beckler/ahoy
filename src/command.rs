@@ -1,6 +1,5 @@
 use dfu_libusb::DfuLibusb;
 use log::*;
-use pirate_midi::check::CheckResponse;
 use std::env::temp_dir;
 use std::fs::File;
 use std::io::{self, copy, Cursor, Seek};
@@ -12,7 +11,7 @@ use octocrab::models::repos::{Asset, Release};
 use crate::{GITHUB_ORG, GITHUB_REPO, USB_PRODUCT_DFU_ID, USB_VENDOR_ID};
 
 use crate::usb::observer::UsbDevice;
-use pirate_midi::{Command, ControlArgs, PirateMIDIDevice};
+use pirate_midi_rs::{check::CheckResponse, Command, ControlArgs, PirateMIDIDevice};
 
 /// maintains connection info for the usb device
 #[derive(Clone)]

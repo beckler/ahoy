@@ -20,7 +20,6 @@ jobs:
   release_please:
     name: Release Please
     runs-on: ubuntu-latest
-    if: github.repository == 'beckler/ahoy'
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
@@ -30,7 +29,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           release-type: rust
-          draft: true
 
   # Build sources for every OS
   github_build:
@@ -41,33 +39,31 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-            name: ahoy-x86_64-unknown-linux-gnu.tar.gz
+          # - target: x86_64-unknown-linux-gnu
+          #   os: ubuntu-latest
+          #   name: ahoy-x86_64-unknown-linux-gnu.tar.gz
 
-          - target: x86_64-unknown-linux-musl
-            os: ubuntu-latest
-            name: ahoy-x86_64-unknown-linux-musl.tar.gz
+          # - target: x86_64-unknown-linux-musl
+          #   os: ubuntu-latest
+          #   name: ahoy-x86_64-unknown-linux-musl.tar.gz
 
-          - target: i686-unknown-linux-musl
-            os: ubuntu-latest
-            name: ahoy-i686-unknown-linux-musl.tar.gz
+          # - target: i686-unknown-linux-musl
+          #   os: ubuntu-latest
+          #   name: ahoy-i686-unknown-linux-musl.tar.gz
 
-          - target: aarch64-unknown-linux-musl
-            os: ubuntu-latest
-            name: ahoy-aarch64-unknown-linux-musl.tar.gz
-
-          - target: arm-unknown-linux-musleabihf
-            os: ubuntu-latest
-            name: ahoy-arm-unknown-linux-musleabihf.tar.gz
+          # - target: aarch64-unknown-linux-musl
+          #   os: ubuntu-latest
+          #   name: ahoy-aarch64-unknown-linux-musl.tar.gz
 
           - target: x86_64-apple-darwin
             os: macOS-11
             name: ahoy-x86_64-apple-darwin.tar.gz
+            rustflags: -C target-feature=+crt-static
 
           - target: aarch64-apple-darwin
             os: macOS-11
             name: ahoy-aarch64-apple-darwin.tar.gz
+            rustflags: -C target-feature=+crt-static
 
           - target: x86_64-pc-windows-msvc
             os: windows-latest
@@ -84,18 +80,12 @@ jobs:
             name: ahoy-aarch64-pc-windows-msvc.zip
             rustflags: -C target-feature=+crt-static
 
-          - target: x86_64-unknown-freebsd
-            os: ubuntu-latest
-            name: ahoy-x86_64-unknown-freebsd.tar.gz
-
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     env:
       RUSTFLAGS: ${{ matrix.rustflags || '' }}
     steps:
-      - name: Setup | Checkout
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v3
       - name: Setup | Rust
         uses: actions-rs/toolchain@v1.0.7
         with:
@@ -112,6 +102,11 @@ jobs:
         env:
           # cargo-wix does not require static crt
           RUSTFLAGS: ""
+
+      - name: Setup | Install libusb [Linux]
+        continue-on-error: true
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y pkg-config libudev-dev libusb-1.0-0-dev
 
       - name: Build | Build
         uses: actions-rs/cargo@v1.0.3
@@ -280,92 +275,3 @@ jobs:
         with:
           files: ahoy-*/ahoy-*
           tag_name: ${{ needs.release_please.outputs.tag_name }}
-
-  # # Publish starship to Crates.io
-  # cargo_publish:
-  #   name: Publish Cargo Package
-  #   runs-on: ubuntu-latest
-  #   needs: release_please
-  #   if: ${{ needs.release_please.outputs.release_created == 'true' }}
-  #   steps:
-  #     - name: Setup | Checkout
-  #       uses: actions/checkout@v3
-
-  #     - name: Setup | Rust
-  #       uses: actions-rs/toolchain@v1.0.7
-  #       with:
-  #         toolchain: stable
-  #         profile: minimal
-  #         override: true
-
-  #     - name: Build | Publish
-  #       run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-  # update_brew_formula:
-  #   name: Update Brew Formula
-  #   runs-on: ubuntu-latest
-  #   needs: release_please
-  #   if: ${{ needs.release_please.outputs.release_created == 'true' }}
-  #   steps:
-  #     - uses: mislav/bump-homebrew-formula-action@v2.1
-  #       with:
-  #         formula-name: starship
-  #         tag-name: ${{ needs.release_please.outputs.tag_name }}
-  #       env:
-  #         # Used for creating the formula update PR
-  #         COMMITTER_TOKEN: ${{ secrets.GH_PAT }}
-  #         # Used for verifying the SHA256 sum of the draft release
-  #         GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-
-  # winget_update:
-  #   name: Update Winget Manifest
-  #   runs-on: windows-latest
-  #   needs: [release_please, github_build, upload_artifacts]
-  #   if: ${{ needs.release_please.outputs.release_created == 'true' }}
-  #   env:
-  #     URL_64: https://github.com/starship/starship/releases/download/${{ needs.release_please.outputs.tag_name }}/starship-x86_64-pc-windows-msvc.msi
-  #     URL_32: https://github.com/starship/starship/releases/download/${{ needs.release_please.outputs.tag_name }}/starship-i686-pc-windows-msvc.msi
-  #   steps:
-  #     - run: |
-  #         $version = '${{ needs.release_please.outputs.tag_name }}'.replace('v', '')
-  #         iwr https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
-  #         ./wingetcreate.exe update Starship.Starship -s -v $version -u $env:URL_64 $env:URL_32 -t ${{ secrets.GH_PAT }}
-
-  # merge_crowdin_pr:
-  #   name: Merge Crowdin PR
-  #   runs-on: ubuntu-latest
-  #   needs: release_please
-  #   if: ${{ needs.release_please.outputs.release_created == 'true' }}
-  #   continue-on-error: true
-  #   steps:
-  #     - name: Merge | Merge Crowdin PR
-  #       run: gh pr merge i18n_master --squash --repo=starship/starship
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # publish_docs:
-  #   name: Publish docs to Netlify
-  #   runs-on: ubuntu-latest
-  #   needs: merge_crowdin_pr
-  #   steps:
-  #     - name: Setup | Checkout
-  #       uses: actions/checkout@v3
-  #       with:
-  #         # Required to include the recently merged Crowdin PR
-  #         ref: master
-
-  #     - name: Setup | Install dependencies
-  #       run: npm install
-  #       working-directory: docs
-
-  #     - name: Build | Build docs site
-  #       run: npm run build
-  #       working-directory: docs
-
-  #     - name: Publish
-  #       uses: netlify/actions/cli@master
-  #       with:
-  #         args: deploy --prod --dir=docs/.vuepress/dist
-  #       env:
-  #         NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-  #         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}

@@ -3,7 +3,7 @@ use std::fs::remove_file;
 use crate::command::install_binary;
 use iced::Command;
 use log::*;
-use pirate_midi::*;
+use pirate_midi_rs::*;
 
 use crate::command::{enter_bootloader, fetch_asset, fetch_releases, UsbConnection};
 
@@ -52,7 +52,7 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
                 } else {
                     if device.is_stm_device() {
                         // attempt to get the device details
-                        match PirateMIDIDevice::new().send(pirate_midi::Command::Check) {
+                        match PirateMIDIDevice::new().send(pirate_midi_rs::Command::Check) {
                             Ok(response) => match response {
                                 Response::Check(details) => {
                                     info!("DEVICE DETAILS: {:?}", details);
