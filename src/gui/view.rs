@@ -39,13 +39,11 @@ pub(crate) fn handle_view(ahoy: &mut Ahoy) -> Element<Message> {
     } else {
         /* WHEN A DEVICE IS NOT CONNECTED */
         let usb_cable_image =
-            Svg::new(Handle::from_memory(IMAGE_USB_CABLE_LIGHT.clone())).height(Length::Units(400));
+            Svg::new(Handle::from_memory(IMAGE_USB_CABLE_LIGHT)).height(Length::Units(400));
 
-        let bridge6 =
-            Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_LIGHT.clone())).width(Length::Units(100));
+        let bridge6 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_LIGHT)).width(Length::Units(100));
 
-        let bridge4 =
-            Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_LIGHT.clone())).width(Length::Units(100));
+        let bridge4 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_LIGHT)).width(Length::Units(100));
 
         Column::new()
             .align_items(Alignment::Center)
@@ -69,7 +67,7 @@ pub(crate) fn handle_view(ahoy: &mut Ahoy) -> Element<Message> {
     let modal_wrapped_content = ahoy.confirm_modal.view(inner_content);
 
     // setup graphical debugging
-    let output = if *&mut ahoy.debug {
+    let output = if ahoy.debug {
         modal_wrapped_content.explain(Color::BLACK)
     } else {
         modal_wrapped_content

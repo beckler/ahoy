@@ -81,7 +81,7 @@ impl VersionList {
                                     Text::new(release.tag_name.clone())
                                         .horizontal_alignment(Horizontal::Center),
                                 )
-                                .on_press(Message::SelectedRelease(release.clone()))
+                                .on_press(Message::SelectedRelease(Box::new(release.clone())))
                                 .padding(DEFAULT_PADDING)
                                 .width(Length::Units(130))
                                 .style(
@@ -93,19 +93,15 @@ impl VersionList {
                                             } else {
                                                 style::Button::ReleaseSelected
                                             }
-                                        } else {
-                                            if release.prerelease {
-                                                style::Button::PreRelease
-                                            } else {
-                                                style::Button::Release
-                                            }
-                                        }
-                                    } else {
-                                        if release.prerelease {
+                                        } else if release.prerelease {
                                             style::Button::PreRelease
                                         } else {
                                             style::Button::Release
                                         }
+                                    } else if release.prerelease {
+                                        style::Button::PreRelease
+                                    } else {
+                                        style::Button::Release
                                     },
                                 ),
                             )
@@ -144,7 +140,7 @@ impl VersionList {
                                         Text::new("Download and Install")
                                             .horizontal_alignment(Horizontal::Center),
                                     )
-                                    .on_press(Message::Download(asset.clone()))
+                                    .on_press(Message::Download(Box::new(asset.clone())))
                                     .padding(DEFAULT_PADDING)
                                     .width(Length::Units(250))
                                     .style(style::Button::ReleaseSelected),

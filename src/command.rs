@@ -31,26 +31,22 @@ pub async fn install_binary(
     progress: Option<impl FnMut(usize) + 'static>,
 ) -> Result<(), CommandError> {
     // create new usb context
-    let context = rusb::Context::new().map_err(|e| {
-        CommandError::DeviceError(format!("unable to create usb context: {}", e.to_string()))
-    })?;
+    let context = rusb::Context::new()
+        .map_err(|e| CommandError::Device(format!("unable to create usb context: {}", e)))?;
     // open the binary file and get the file size
-    let mut file = std::fs::File::open(binary_path).map_err(|e| {
-        CommandError::IOError(format!("could not open firmware file: {}", e.to_string()))
-    })?;
+    let mut file = std::fs::File::open(binary_path)
+        .map_err(|e| CommandError::IO(format!("could not open firmware file: {}", e)))?;
     let file_size = u32::try_from(
         file.seek(io::SeekFrom::End(0))
-            .map_err(|e| CommandError::IOError(e.to_string()))?,
+            .map_err(|e| CommandError::IO(e.to_string()))?,
     )
-    .map_err(|e| {
-        CommandError::IOError(format!("the firmware file is too big: {}", e.to_string()))
-    })?;
+    .map_err(|e| CommandError::IO(format!("the firmware file is too big: {}", e)))?;
     file.seek(io::SeekFrom::Start(0))
-        .map_err(|e| CommandError::IOError(e.to_string()))?;
+        .map_err(|e| CommandError::IO(e.to_string()))?;
 
     // open the DFU interface
     let mut dfu_iface = DfuLibusb::open(&context, USB_VENDOR_ID, USB_PRODUCT_DFU_ID, 0, 0)
-        .map_err(|e| CommandError::DfuError(e.to_string()))?;
+        .map_err(|e| CommandError::Dfu(e.to_string()))?;
 
     // setup our progress bar - if available
     if progress.is_some() {
@@ -60,13 +56,13 @@ pub async fn install_binary(
     // PERFORM THE INSTALL
     dfu_iface
         .download(file, file_size)
-        .map_err(|e| CommandError::DfuError(e.to_string()))
+        .map_err(|e| CommandError::Dfu(e.to_string()))
 }
 
 pub async fn enter_bootloader() -> Result<(), CommandError> {
     match PirateMIDIDevice::new().send(Command::Control(ControlArgs::EnterBootloader)) {
         Ok(_) => Ok(()),
-        Err(err) => Err(CommandError::DeviceError(format!(
+        Err(err) => Err(CommandError::Device(format!(
             "UNABLE TO ENTER BOOTLOADER: {}",
             err
         ))),
@@ -96,7 +92,7 @@ pub async fn fetch_releases() -> Result<Vec<Release>, CommandError> {
 
     match fetch_all.await {
         Ok(releases) => Ok(releases),
-        Err(err) => Err(CommandError::RetievalError(err.to_string())),
+        Err(err) => Err(CommandError::Retieval(err.to_string())),
     }
 }
 
@@ -121,28 +117,28 @@ pub async fn fetch_asset(asset: Asset) -> Result<PathBuf, CommandError> {
                         match copy(&mut content, &mut file) {
                             Ok(written) => {
                                 info!("successfully downloaded - total bytes written: {}", written);
-                                return Ok(temp_file_path);
+                                Ok(temp_file_path)
                             }
-                            Err(err) => return Err(CommandError::IOError(err.to_string())),
+                            Err(err) => Err(CommandError::IO(err.to_string())),
                         }
                     }
-                    Err(err) => return Err(CommandError::IOError(err.to_string())),
+                    Err(err) => Err(CommandError::IO(err.to_string())),
                 }
             }
-            Err(err) => return Err(CommandError::RetievalError(err.to_string())),
+            Err(err) => Err(CommandError::Retieval(err.to_string())),
         },
-        Err(err) => return Err(CommandError::RetievalError(err.to_string())),
+        Err(err) => Err(CommandError::Retieval(err.to_string())),
     }
 }
 
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum CommandError {
     #[error("unable to retrieve file")]
-    IOError(String),
+    IO(String),
     #[error("unable to perform install")]
-    DfuError(String),
+    Dfu(String),
     #[error("unable to send command to device")]
-    DeviceError(String),
+    Device(String),
     #[error("unable to fetch releases")]
-    RetievalError(String),
+    Retieval(String),
 }

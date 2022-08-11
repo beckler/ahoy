@@ -48,10 +48,7 @@ pub fn listener() -> Subscription<Event> {
                         // app has already launched - but detects a new device
                         observer::Event::Connected(device) => {
                             if device.is_dfu_device() || device.is_stm_device() {
-                                (
-                                    Some(Event::Connect(device.clone())),
-                                    State::Listener(subscription),
-                                )
+                                (Some(Event::Connect(device)), State::Listener(subscription))
                             } else {
                                 (None, State::Listener(subscription))
                             }

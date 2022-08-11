@@ -42,11 +42,17 @@ impl<T: UsbContext> Drop for HotPlugHandler<T> {
 
 // USB DEVICE
 
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Eq)]
 pub struct UsbDevice {
     pub raw_device: Option<Device<Context>>,
     pub vendor_id: u16,
     pub product_id: u16,
+}
+
+impl PartialEq for UsbDevice {
+    fn eq(&self, other: &Self) -> bool {
+        self.vendor_id == other.vendor_id && self.product_id == other.product_id
+    }
 }
 
 impl Hash for UsbDevice {
@@ -243,7 +249,7 @@ impl Observer {
 
                         // get initial device list into hashset
                         let mut device_list: HashSet<UsbDevice> =
-                            device_list.into_iter().cloned().collect();
+                            device_list.iter().cloned().collect();
                         let mut wait_seconds = this.clone().poll_interval as f32;
 
                         loop {
@@ -265,7 +271,7 @@ impl Observer {
 
                             // Send Disconnect for missing devices
                             for device in &device_list {
-                                if !next_devices.contains(&device)
+                                if !next_devices.contains(device)
                                     && this
                                         .tx_event
                                         .send(Event::Disconnected(device.clone()))
@@ -277,7 +283,7 @@ impl Observer {
 
                             // Send Connect for new devices
                             for device in &next_devices {
-                                if !device_list.contains(&device)
+                                if !device_list.contains(device)
                                     && this
                                         .tx_event
                                         .send(Event::Connected(device.clone()))

@@ -72,7 +72,7 @@ pub enum Message {
 
     // release specific
     FetchReleases,
-    SelectedRelease(Release),
+    SelectedRelease(Box<Release>),
     RetrievedReleases(Result<Vec<Release>, CommandError>),
     ReleaseFilterChanged(Filter),
 
@@ -84,9 +84,10 @@ pub enum Message {
     PostInstall(Result<(), CommandError>),
 
     // install specific
-    Download(Asset),
-    Downloaded(Result<PathBuf, CommandError>), // DownloadProgressed((usize, download::Progress)),
-                                               // InstallProgressed((usize, download::Progress)),
+    Download(Box<Asset>),
+    Downloaded(Result<PathBuf, CommandError>),
+    // DownloadProgressed((usize, download::Progress)),
+    // InstallProgressed((usize, download::Progress)),
 }
 
 // #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -168,30 +169,17 @@ impl Filter {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {
-    APIError(String),
-    InstallError(String),
+    #[error("Error reaching Github!\nRun with `-v` flag to see more details. Reason: {0}")]
+    RemoteApi(String),
+    #[error("Unable to install update! Reason: {0}")]
+    Install(String),
 }
 
 impl From<reqwest::Error> for Error {
     fn from(error: reqwest::Error) -> Error {
         debug!("ERROR: {}", error);
-
-        Error::APIError(error.to_string())
-    }
-}
-impl Error {
-    fn to_string(&self) -> String {
-        match self {
-            Error::APIError(message) => {
-                error!("Unable to reach Github. Details: {}", message);
-                format!("Error reaching Github!\nRun with `-v` flag to see more details.")
-            }
-            Error::InstallError(message) => {
-                error!("{message}");
-                format!("Unable to install update: {}", message.to_owned())
-            }
-        }
+        Error::RemoteApi(error.to_string())
     }
 }

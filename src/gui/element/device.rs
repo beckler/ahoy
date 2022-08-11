@@ -12,14 +12,14 @@ impl DeviceView {
     pub fn view<'a>(&self, conn: &'a UsbConnection) -> Element<'a, Message> {
         // pull the brand for the device
         let model_brand = match conn.details.device_model.trim().to_lowercase().as_str() {
-            "bridge4" => Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_LIGHT.clone())),
-            _ => Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_LIGHT.clone())),
+            "bridge4" => Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_LIGHT)),
+            _ => Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_LIGHT)),
         }
         .width(Length::Units(100));
 
         // build the brand column
         let status_text: Row<Message> = Row::new()
-            .push(Text::new(format!("CONNECTED")).color(Color::from_rgb8(100, 183, 93)))
+            .push(Text::new("CONNECTED").color(Color::from_rgb8(100, 183, 93)))
             .push(Text::new(format!(" - {}", conn.details.device_model)));
 
         // build the status column

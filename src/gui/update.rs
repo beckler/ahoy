@@ -16,7 +16,7 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
             ahoy.releases = None;
             ahoy.selected_version = None;
             info!("refresh requested - attempt to fetch releases...");
-            if let Some(_) = ahoy.connection {
+            if ahoy.connection.is_some() {
                 return Command::perform(fetch_releases(), Message::RetrievedReleases);
             }
         }
@@ -30,17 +30,19 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
             // set our releases
             ahoy.releases = Some(releases);
         }
-        Message::RetrievedReleases(Err(err)) => ahoy.error = Some(Error::APIError(err.to_string())),
+        Message::RetrievedReleases(Err(err)) => {
+            ahoy.error = Some(Error::RemoteApi(err.to_string()))
+        }
         Message::ReleaseFilterChanged(filter) => ahoy.filter = filter,
-        Message::SelectedRelease(release) => ahoy.selected_version = Some(release),
+        Message::SelectedRelease(release) => ahoy.selected_version = Some(*release),
         Message::Download(asset) => {
-            return Command::perform(fetch_asset(asset), Message::Downloaded);
+            return Command::perform(fetch_asset(*asset), Message::Downloaded);
         }
         Message::Downloaded(Ok(path)) => {
             ahoy.installable_asset = Some(path.clone());
             ahoy.confirm_modal.show(path);
         }
-        Message::Downloaded(Err(err)) => ahoy.error = Some(Error::APIError(err.to_string())),
+        Message::Downloaded(Err(err)) => ahoy.error = Some(Error::RemoteApi(err.to_string())),
         Message::DeviceChangedAction(event) => match event {
             usb::Event::Connect(device) => {
                 if ahoy.installing {
@@ -49,27 +51,24 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
                         ahoy.dfu_connection = Some(device);
                         return self::handle_message(ahoy, Message::Install);
                     }
-                } else {
-                    if device.is_stm_device() {
-                        // attempt to get the device details
-                        match PirateMIDIDevice::new().send(pirate_midi_rs::Command::Check) {
-                            Ok(response) => match response {
-                                Response::Check(details) => {
-                                    info!("DEVICE DETAILS: {:?}", details);
-                                    ahoy.connection = Some(UsbConnection::new(device, details));
+                } else if device.is_stm_device() {
+                    // attempt to get the device details
+                    match PirateMIDIDevice::new().send(pirate_midi_rs::Command::Check) {
+                        Ok(response) => {
+                            if let Response::Check(details) = response {
+                                info!("DEVICE DETAILS: {:?}", details);
+                                ahoy.connection = Some(UsbConnection::new(device, details));
 
-                                    // retrieve releases if we have a valid device
-                                    return Command::perform(
-                                        fetch_releases(),
-                                        Message::RetrievedReleases,
-                                    );
-                                }
-                                _ => (),
-                            },
-                            Err(err) => {
-                                error!("error connecting to device: {:?}", err);
-                                return self::handle_message(ahoy, Message::Cancel);
+                                // retrieve releases if we have a valid device
+                                return Command::perform(
+                                    fetch_releases(),
+                                    Message::RetrievedReleases,
+                                );
                             }
+                        }
+                        Err(err) => {
+                            error!("error connecting to device: {:?}", err);
+                            return self::handle_message(ahoy, Message::Cancel);
                         }
                     }
                 }
@@ -102,7 +101,7 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
         }
         Message::WaitForBootloader(Ok(())) => {} // do nothing but wait for the DeviceChangedAction::Connect event!
         Message::WaitForBootloader(Err(err)) => {
-            ahoy.error = Some(Error::InstallError(err.to_string()));
+            ahoy.error = Some(Error::Install(err.to_string()));
             ahoy.installing = false;
             return self::handle_message(ahoy, Message::Cancel);
         }
