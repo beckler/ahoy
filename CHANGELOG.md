@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.2](https://github.com/beckler/ahoy/compare/v0.2.1...v0.2.2) (2022-08-11)
+
+
+### Bug Fixes
+
+* moved to remote lib ([4b7878f](https://github.com/beckler/ahoy/commit/4b7878fe8b276c6aba2a58d7f31ea6e58c89ca61))
+* resolved all clippy items ([f7b0102](https://github.com/beckler/ahoy/commit/f7b010219c12f732ef64ca8aa7ec3c8486eb9cd1))
+
 ## [0.2.1](https://github.com/beckler/ahoy/compare/v0.2.0...v0.2.1) (2022-08-07)
 
 
