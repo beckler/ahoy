@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/beckler/ahoy/compare/v0.3.2...v0.3.3) (2022-08-12)
+
+
+### Bug Fixes
+
+* added 32bit and arm windows, removing cross from linux build ([5f55905](https://github.com/beckler/ahoy/commit/5f5590537fc9a64abe141eab78c3bb9354bad169))
+
 ## [0.3.2](https://github.com/beckler/ahoy/compare/v0.3.1...v0.3.2) (2022-08-12)
 
 
