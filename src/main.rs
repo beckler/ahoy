@@ -2,7 +2,7 @@ use std::{process::exit, time::Duration};
 
 use crate::{
     cli::{Args, Commands},
-    command::{enter_bootloader, install_binary},
+    command::{enter_bootloader, install_binary, update_self},
 };
 use clap::Parser;
 use log::{error, info};
@@ -114,6 +114,10 @@ fn main() {
                     // finish progress bar
                     bar.finish();
                 }),
+            Commands::Update => match update_self() {
+                Ok(_) => println!("update complete"),
+                Err(err) => error!("unable to perform update: {}", err),
+            },
         },
         None => {
             // Start the GUI

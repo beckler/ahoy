@@ -32,4 +32,6 @@ pub enum Commands {
     // List,
     /// Install a specific binary/firmware file [bypasses GUI]
     Install(InstallArgs),
+    /// Update this application to the latest available version
+    Update,
 }

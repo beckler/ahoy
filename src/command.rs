@@ -1,5 +1,6 @@
 use dfu_libusb::DfuLibusb;
 use log::*;
+use self_update::cargo_crate_version;
 use std::env::temp_dir;
 use std::fs::File;
 use std::io::{self, copy, Cursor, Seek};
@@ -25,6 +26,23 @@ impl UsbConnection {
         UsbConnection { device, details }
     }
 }
+
+pub fn update_self() -> Result<(), Box<dyn ::std::error::Error>> {
+    let status = self_update::backends::github::Update::configure()
+        .repo_owner("beckler")
+        .repo_name("ahoy")
+        .bin_name("ahoy")
+        .show_download_progress(true)
+        .current_version(cargo_crate_version!())
+        .build()?
+        .update()?;
+    println!("update status: `{}`!", status.version());
+    Ok(())
+}
+
+// pub async fn create_backup() -> Result<(), CommandError> {
+//     Ok(())
+// }
 
 pub async fn install_binary(
     binary_path: PathBuf,
