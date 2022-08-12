@@ -54,6 +54,16 @@ jobs:
             name: ahoy-x86_64-pc-windows-msvc.zip
             rustflags: "-C target-feature=+crt-static"
 
+          # - target: i686-pc-windows-msvc
+          #   os: windows-latest
+          #   name: ahoy-i686-pc-windows-msvc.zip
+          #   rustflags: -C target-feature=+crt-static
+
+          # - target: aarch64-pc-windows-msvc
+          #   os: windows-latest
+          #   name: ahoy-aarch64-pc-windows-msvc.zip
+          #   rustflags: -C target-feature=+crt-static
+
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     env:

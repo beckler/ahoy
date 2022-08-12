@@ -27,3 +27,6 @@ serialport = "4.2.0"
 stderrlog = "0.5.3"
 thiserror = "1.0.31"
 tokio = { version = "1.20.1", features = ["sync"] }
+
+[target.x86_64-unknown-linux-gnu]
+pre-build = ["apt-get update && apt-get install --assume-yes pkg-config libudev-dev libusb-1.0-0-dev"]
