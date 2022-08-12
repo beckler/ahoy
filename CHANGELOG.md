@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/beckler/ahoy/compare/v0.2.4...v0.3.0) (2022-08-12)
+
+
+### Features
+
+* display device name instead of device type ([455ab6a](https://github.com/beckler/ahoy/commit/455ab6a000096c2e3190cfc3192bd6e151e9dfc3))
+
+
+### Bug Fixes
+
+* may have figured out the static linkage issue and libusb ([be207f5](https://github.com/beckler/ahoy/commit/be207f5f401624f981c6b8a9b47efa92f35890c5))
+
 ## [0.2.4](https://github.com/beckler/ahoy/compare/v0.2.3...v0.2.4) (2022-08-11)
 
 
