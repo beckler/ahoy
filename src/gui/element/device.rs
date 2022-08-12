@@ -20,7 +20,7 @@ impl DeviceView {
         // build the brand column
         let status_text: Row<Message> = Row::new()
             .push(Text::new("CONNECTED").color(Color::from_rgb8(100, 183, 93)))
-            .push(Text::new(format!(" - {}", conn.details.device_model)));
+            .push(Text::new(format!(" - {}", conn.details.device_name)));
 
         // build the status column
         let status_column: Column<Message> = Column::new()
