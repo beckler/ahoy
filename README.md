@@ -24,6 +24,7 @@ Use this guide for your specific machine:
 - Windows
   - Intel/AMD
     -  [***untested**] `x86_64-pc-windows-msvc`
+    -  [***untested**] (32-bit) `i686-pc-windows-msvc`
   - ARM
     - [***untested**] `aarch64-pc-windows-msvc`
 - macOS ([read caviet](#macos-caviet))

@@ -54,15 +54,15 @@ jobs:
             name: ahoy-x86_64-pc-windows-msvc.zip
             rustflags: "-C target-feature=+crt-static"
 
-          # - target: i686-pc-windows-msvc
-          #   os: windows-latest
-          #   name: ahoy-i686-pc-windows-msvc.zip
-          #   rustflags: -C target-feature=+crt-static
+          - target: i686-pc-windows-msvc
+            os: windows-latest
+            name: ahoy-i686-pc-windows-msvc.zip
+            rustflags: -C target-feature=+crt-static
 
-          # - target: aarch64-pc-windows-msvc
-          #   os: windows-latest
-          #   name: ahoy-aarch64-pc-windows-msvc.zip
-          #   rustflags: -C target-feature=+crt-static
+          - target: aarch64-pc-windows-msvc
+            os: windows-latest
+            name: ahoy-aarch64-pc-windows-msvc.zip
+            rustflags: -C target-feature=+crt-static
 
     runs-on: ${{ matrix.os }}
     continue-on-error: true
@@ -79,6 +79,14 @@ jobs:
           profile: minimal
           target: ${{ matrix.target }}
 
+      - name: Setup | Install deps [Linux]
+        continue-on-error: true
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get clean && sudo apt-get update
+          sudo apt-get install -y pkg-config libudev-dev libusb-1.0-0-dev
+
       - name: Setup | Install cargo-wix [Windows]
         continue-on-error: true
         # aarch64 is only supported in wix 4.0 development builds
@@ -93,7 +101,7 @@ jobs:
         with:
           command: build
           args: --release --target ${{ matrix.target }}
-          use-cross: ${{ matrix.os == 'ubuntu-latest' }}
+          # use-cross: ${{ matrix.os == 'ubuntu-latest' }}
 
       - name: Build | Installer [Windows]
         continue-on-error: true
@@ -193,12 +201,6 @@ jobs:
 
   #         # Add Apple Developer ID credentials to keychain
   #         xcrun notarytool store-credentials "$KEYCHAIN_ENTRY" --team-id "$APPLEID_TEAMID" --apple-id "$APPLEID_USERNAME" --password "$APPLEID_PASSWORD" --keychain "$KEYCHAIN_PATH"
-
-  #     # - name: Notarize | Build docs
-  #     #   run: |
-  #     #     cd docs
-  #     #     npm install
-  #     #     npm run build
 
   #     - name: Notarize | Download artifacts
   #       uses: actions/download-artifact@v3
