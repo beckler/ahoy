@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/beckler/ahoy/compare/v0.3.0...v0.3.1) (2022-08-12)
+
+
+### Bug Fixes
+
+* different approach for the static linkage ([97a565d](https://github.com/beckler/ahoy/commit/97a565d67fcec828fc874c0e0dc6e8420f482edb))
+
 ## [0.3.0](https://github.com/beckler/ahoy/compare/v0.2.4...v0.3.0) (2022-08-12)
 
 
