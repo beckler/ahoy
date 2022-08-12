@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/beckler/ahoy/compare/v0.3.1...v0.3.2) (2022-08-12)
+
+
+### Bug Fixes
+
+* added cross args ([750f04f](https://github.com/beckler/ahoy/commit/750f04f1c5d1e148dc555d545327361dd5e6fee7))
+
 ## [0.3.1](https://github.com/beckler/ahoy/compare/v0.3.0...v0.3.1) (2022-08-12)
 
 
