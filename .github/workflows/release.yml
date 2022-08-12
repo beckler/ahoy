@@ -37,7 +37,7 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             name: ahoy-x86_64-unknown-linux-gnu.tar.gz
-            rustflags: "-C target-feature=-crt-static"
+            rustflags: "-C target-feature=+crt-static"
 
           - target: x86_64-apple-darwin
             os: macOS-11
@@ -52,6 +52,7 @@ jobs:
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             name: ahoy-x86_64-pc-windows-msvc.zip
+            rustflags: "-C target-feature=+crt-static"
 
     runs-on: ${{ matrix.os }}
     continue-on-error: true
@@ -76,16 +77,6 @@ jobs:
         env:
           # cargo-wix does not require static crt
           RUSTFLAGS: ""
-
-      - name: Setup | Install libusb [Linux]
-        continue-on-error: true
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y pkg-config libudev-dev libusb-1.0-0-dev
-
-      - name: Setup | Install libusb [macOS]
-        continue-on-error: true
-        if: matrix.os == 'macOS-11'
-        run: brew install libusb
 
       - name: Build | Build
         uses: actions-rs/cargo@v1.0.3
