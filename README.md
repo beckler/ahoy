@@ -64,8 +64,8 @@ You need `libusb` to run this, and due to some build issues, it's dynamically li
 
 If you're concerned, or believe you may have bricked your device, there is a path to reapply the update! The creators of the Bridge devices had great foresight for this exact issue, and you should do the following:
 
-1. **DON'T PANIC**
-2. Hold FS6 while plugging in a USB cable.
-    1. For the Bridge4, hold FS4 (**Note**: _This is just a guess, as I have not personally verified this since I have the Bridge6, please submit an issue or PR if you're able to confirm_) 
-3. Wait about 10-15 seconds, as the device won't appear to do anything.
-4. As a backup method, use the `dfu-util` command as [laid out here](https://learn.piratemidi.com/software/downloads) (click "Details & Instructions").
+- **DON'T PANIC**
+- For the Bridge6, Hold FS6 while plugging in a USB cable.
+- For the Bridge4, hold FS3 while plugging in a USB cable (Thanks Simon!).
+- Wait about 10-15 seconds, as the device won't appear to do anything.
+- As a backup method, use the `dfu-util` command as [laid out here](https://learn.piratemidi.com/software/downloads) (click "Details & Instructions").
