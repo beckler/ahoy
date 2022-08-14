@@ -4,8 +4,6 @@ mod update;
 mod usb;
 mod view;
 
-mod firmware;
-
 /* STATIC RESOURCES */
 // images for light mode
 pub static IMAGE_USB_CABLE_LIGHT: &[u8] = include_bytes!("../../resources/usb-light.svg");

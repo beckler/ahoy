@@ -22,16 +22,20 @@ pub struct Args {
 
 #[derive(Parser, Debug)]
 pub struct InstallArgs {
+    /// Skip sending the booloader serial command
+    /// (This is useful when the device is already in bootloader/DFU mode)
+    #[clap(short, long)]
+    pub skip_bootloader: bool,
+
     /// Path to the binary file to install to the device
     pub file: PathBuf,
 }
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    // /// List all available releases
-    // List,
     /// Install a specific binary/firmware file [bypasses GUI]
     Install(InstallArgs),
+
     /// Update this application to the latest available version
     Update,
 }
