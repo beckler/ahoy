@@ -1,8 +1,9 @@
 use iced::{svg::Handle, Alignment, Color, Column, Container, Element, Length, Row, Text};
 use iced_native::widget::Svg;
 
-use crate::gui::{
-    Message, UsbConnection, DEFAULT_PADDING, IMAGE_BRIDGE_4_LIGHT, IMAGE_BRIDGE_6_LIGHT,
+use crate::{
+    command::device::UsbConnection,
+    gui::{Message, DEFAULT_PADDING, IMAGE_BRIDGE_4_LIGHT, IMAGE_BRIDGE_6_LIGHT},
 };
 
 #[derive(Default, Debug, Clone)]

@@ -4,6 +4,8 @@ mod update;
 mod usb;
 mod view;
 
+mod firmware;
+
 /* STATIC RESOURCES */
 // images for light mode
 pub static IMAGE_USB_CABLE_LIGHT: &[u8] = include_bytes!("../../resources/usb-light.svg");
@@ -34,7 +36,7 @@ use std::path::PathBuf;
 
 use crate::{
     cli::{self, Args},
-    command::{CommandError, UsbConnection},
+    command::{device::UsbConnection, CommandError},
     usb::observer::UsbDevice,
 };
 
