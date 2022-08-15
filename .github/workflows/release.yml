@@ -40,12 +40,12 @@ jobs:
             rustflags: "-C target-feature=-crt-static"
 
           - target: x86_64-apple-darwin
-            os: macOS-11
+            os: macos-latest
             name: ahoy-x86_64-apple-darwin.tar.gz
             rustflags: "-C link-arg=-undefined -C link-arg=dynamic_lookup -C target-feature=+crt-static"
 
           - target: aarch64-apple-darwin
-            os: macOS-11
+            os: macos-latest
             name: ahoy-aarch64-apple-darwin.tar.gz
             rustflags: "-C link-arg=-undefined -C link-arg=dynamic_lookup -C target-feature=+crt-static"
 
@@ -74,13 +74,19 @@ jobs:
           profile: minimal
           target: ${{ matrix.target }}
 
-      - name: Setup | Install deps [Linux]
+      - name: Setup | Install libusb
         continue-on-error: true
-        if: matrix.os == 'ubuntu-latest'
         run: |
-          export DEBIAN_FRONTEND=noninteractive
-          sudo apt-get clean && sudo apt-get update
-          sudo apt-get install -y pkg-config libudev-dev libusb-1.0-0-dev
+          if [[ ${{ matrix.os }} == "ubuntu-latest" ]]; then
+            sudo apt install pkg-config libusb-1.0-0-dev libudev-dev
+          elif [[ ${{ matrix.os }} == "macos-latest" ]]; then
+            brew install pkg-config libusb
+          elif [[ ${{ matrix.os }} == "windows-latest" ]]; then
+            git clone https://github.com/microsoft/vcpkg.git --depth 1
+            vcpkg/bootstrap-vcpkg.bat
+            vcpkg/vcpkg integrate install
+            vcpkg/vcpkg install libusb
+          fi
 
       - name: Setup | Install cargo-wix [Windows]
         continue-on-error: true
