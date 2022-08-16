@@ -74,19 +74,24 @@ jobs:
           profile: minimal
           target: ${{ matrix.target }}
 
-      - name: Setup | Install libusb
+      - name: Setup | Install libusb [Linux]
         continue-on-error: true
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt install pkg-config libusb-1.0-0-dev libudev-dev
+
+      - name: Setup | Install libusb [macOS]
+        continue-on-error: true
+        if: matrix.os == 'macos-latest'
+        run: brew install pkg-config libusb
+
+      - name: Setup | Install libusb [Windows]
+        continue-on-error: true
+        if: matrix.os == 'windows-latest'
         run: |
-          if [[ ${{ matrix.os }} == "ubuntu-latest" ]]; then
-            sudo apt install pkg-config libusb-1.0-0-dev libudev-dev
-          elif [[ ${{ matrix.os }} == "macos-latest" ]]; then
-            brew install pkg-config libusb
-          elif [[ ${{ matrix.os }} == "windows-latest" ]]; then
-            git clone https://github.com/microsoft/vcpkg.git --depth 1
-            vcpkg/bootstrap-vcpkg.bat
-            vcpkg/vcpkg integrate install
-            vcpkg/vcpkg install libusb
-          fi
+          git clone https://github.com/microsoft/vcpkg.git --depth 1
+          vcpkg/bootstrap-vcpkg.bat
+          vcpkg/vcpkg integrate install
+          vcpkg/vcpkg install libusb
 
       - name: Setup | Install cargo-wix [Windows]
         continue-on-error: true
