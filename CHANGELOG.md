@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0](https://github.com/beckler/ahoy/compare/v0.3.3...v0.4.0) (2022-08-16)
+
+
+### Features
+
+* added new flag for cli install ([f5e60b9](https://github.com/beckler/ahoy/commit/f5e60b9c28aeec906e0c9964ab8d9ce1f2b85bd9))
+* added self-update cli command ([69b1d50](https://github.com/beckler/ahoy/commit/69b1d50d15c25028d9fc159c193a9000885835e0))
+
+
+### Bug Fixes
+
+* new approach for libusb on windows ([348baa0](https://github.com/beckler/ahoy/commit/348baa0e4dd5b6974030c89dd5bb46ec61733832))
+* removed windows arm build due to issues ([807e052](https://github.com/beckler/ahoy/commit/807e05202a71cda679e43e02fb4ef9c0a42d2fcf))
+
 ## [0.3.3](https://github.com/beckler/ahoy/compare/v0.3.2...v0.3.3) (2022-08-12)
 
 
