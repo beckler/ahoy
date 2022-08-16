@@ -2,7 +2,10 @@ use std::{process::exit, time::Duration};
 
 use crate::{
     cli::{Args, Commands},
-    command::{enter_bootloader, install_binary, update_self},
+    command::{
+        device::{enter_bootloader, install_binary},
+        update::update_self,
+    },
 };
 use clap::Parser;
 use log::{error, info};
@@ -62,19 +65,22 @@ fn main() {
                     };
                     info!("binary size: {}", file_size);
 
-                    // enter bootloader
-                    println!("entering bootloader mode...");
-                    match enter_bootloader().await {
-                        Ok(_) => (), // continue
-                        Err(err) => {
-                            error!("device unable to enter bootloader mode: {}", err);
-                            std::process::exit(0x0300);
-                        }
-                    };
+                    // send or skip booloader command
+                    if !args.skip_bootloader {
+                        // enter bootloader
+                        println!("entering bootloader mode...");
+                        match enter_bootloader().await {
+                            Ok(_) => (), // continue
+                            Err(err) => {
+                                error!("device unable to enter bootloader mode: {}", err);
+                                std::process::exit(0x0300);
+                            }
+                        };
 
-                    // sleep to wait for bootloader mode
-                    println!("pausing thread for 3 seconds to wait for bootloader mode...");
-                    std::thread::sleep(Duration::from_secs(3));
+                        // sleep to wait for bootloader mode
+                        println!("pausing thread for 3 seconds to wait for bootloader mode...");
+                        std::thread::sleep(Duration::from_secs(3));
+                    }
 
                     // attempt install
                     println!("installing...");
@@ -114,7 +120,7 @@ fn main() {
                     // finish progress bar
                     bar.finish();
                 }),
-            Commands::Update => match update_self() {
+            Commands::Update => match update_self(true) {
                 Ok(_) => println!("update complete"),
                 Err(err) => error!("unable to perform update: {}", err),
             },

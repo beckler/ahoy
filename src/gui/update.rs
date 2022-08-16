@@ -1,11 +1,13 @@
 use std::fs::remove_file;
 
-use crate::command::install_binary;
 use iced::Command;
 use log::*;
 use pirate_midi_rs::*;
 
-use crate::command::{enter_bootloader, fetch_asset, fetch_releases, UsbConnection};
+use crate::command::{
+    device::{enter_bootloader, install_binary, UsbConnection},
+    release::{fetch_asset, fetch_releases},
+};
 
 use super::{usb, Ahoy, Error, Message};
 

@@ -5,7 +5,7 @@ use iced::{
 use octocrab::models::repos::Release;
 
 use crate::{
-    command::UsbConnection,
+    command::device::UsbConnection,
     gui::{
         self,
         style::{self},

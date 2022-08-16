@@ -34,7 +34,7 @@ use std::path::PathBuf;
 
 use crate::{
     cli::{self, Args},
-    command::{CommandError, UsbConnection},
+    command::{device::UsbConnection, CommandError},
     usb::observer::UsbDevice,
 };
 
