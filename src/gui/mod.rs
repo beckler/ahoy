@@ -56,6 +56,7 @@ pub fn run(args: Args) -> iced::Result {
             ..Default::default()
         },
         antialiasing: true,
+        exit_on_close_request: true,
         default_font: Some(DEFAULT_FONT),
         default_text_size: DEFAULT_FONT_SIZE,
         flags: args,
