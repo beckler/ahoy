@@ -70,3 +70,8 @@ If you're concerned, or believe you may have bricked your device, there is a pat
 - Wait about 10-15 seconds, as the device won't appear to do anything.
 - Run the command: `ahoy install --skip-bootloader ~/path/to/your/downloaded/firmware.bin`
   - As a backup method, you can use the `dfu-util` command as [laid out here](https://learn.piratemidi.com/software/downloads) (click "Details & Instructions").
+
+
+## Build Process
+
+Most of the build GH action and scripts were pulled and modified from the [Starship](https://github.com/starship/starship/) project!

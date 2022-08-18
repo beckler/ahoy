@@ -57,7 +57,7 @@ jobs:
           - target: i686-pc-windows-msvc
             os: windows-latest
             name: ahoy-i686-pc-windows-msvc.zip
-            rustflags: -C target-feature=+crt-static
+            rustflags: "-C target-feature=+crt-static"
 
     runs-on: ${{ matrix.os }}
     continue-on-error: true

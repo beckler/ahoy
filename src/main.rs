@@ -1,3 +1,8 @@
+#![cfg_attr(
+    all(target_os = "windows", not(feature = "console"),),
+    windows_subsystem = "windows"
+)]
+
 use std::{process::exit, time::Duration};
 
 use crate::{
@@ -39,6 +44,7 @@ fn main() {
     // configure std logging
     stderrlog::new()
         .module(module_path!())
+        .module("pirate-midi-rs")
         .verbosity(args.verbose)
         .timestamp(stderrlog::Timestamp::Second)
         .init()
