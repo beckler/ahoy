@@ -55,7 +55,7 @@ pub fn run(args: Args) -> iced::Result {
             decorations: true,
             ..Default::default()
         },
-        antialiasing: true,
+        // antialiasing: true,
         exit_on_close_request: true,
         default_font: Some(DEFAULT_FONT),
         default_text_size: DEFAULT_FONT_SIZE,
@@ -87,18 +87,7 @@ pub enum Message {
     // install specific
     Download(Box<Asset>),
     Downloaded(Result<PathBuf, CommandError>),
-    // DownloadProgressed((usize, download::Progress)),
-    // InstallProgressed((usize, download::Progress)),
 }
-
-// #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
-// pub enum Status {
-//     #[default]
-//     Initial,
-// InBootloader,
-// Installing,
-// Installed,
-// }
 
 #[derive(Default)]
 pub(crate) struct Ahoy {
@@ -139,7 +128,6 @@ impl Application for Ahoy {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        // match self.
         usb::listener().map(Message::DeviceChangedAction)
     }
 

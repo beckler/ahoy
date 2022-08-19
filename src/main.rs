@@ -1,7 +1,7 @@
-#![cfg_attr(
-    all(target_os = "windows", not(feature = "console"),),
-    windows_subsystem = "windows"
-)]
+// Avoid spawning an console window for the program.
+// This is ignored on other platforms.
+// https://msdn.microsoft.com/en-us/library/4cc7ya5b.aspx for more information.
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::{process::exit, time::Duration};
 
@@ -134,7 +134,7 @@ fn main() {
         None => {
             // Start the GUI
             match gui::run(args) {
-                Ok(_) => exit(0),
+                Ok(_) => exit(0x000),
                 Err(e) => println!("{:?}", e),
             }
         }
