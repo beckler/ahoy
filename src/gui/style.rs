@@ -5,6 +5,50 @@ use iced_aw::modal;
 use super::DEFAULT_BORDER_RADIUS;
 use super::DEFAULT_FONT_COLOR;
 
+// COLORS
+// Colors are between 0.0 and 1.0, but most color codes are in u8 with a max value of 255.
+// So to translate from u8 to float, do this: {hex} / 255.0 = {decimal}
+
+// #1F2528 - R31/G37/B40
+pub static BLACK: Color = Color {
+    r: 0.1216,
+    g: 0.1450,
+    b: 0.1568,
+    a: 1.0,
+};
+
+// #EF5280 - R239/G82/B128
+pub static PRIMARY: Color = Color {
+    r: 0.9372,
+    g: 0.3215,
+    b: 0.5019,
+    a: 1.0,
+};
+
+// #F15A5B - R241/G90/B91
+pub static PRIMARY_END: Color = Color {
+    r: 0.9450,
+    g: 0.3529,
+    b: 0.3568,
+    a: 1.0,
+};
+
+// #5B8DCA - R91/G141/B202
+pub static SECONDARY: Color = Color {
+    r: 0.3568,
+    g: 0.5529,
+    b: 0.7921,
+    a: 1.0,
+};
+
+// #85D1D4 - R133/G209/B212
+pub static SECONDARY_END: Color = Color {
+    r: 0.4784,
+    g: 0.8196,
+    b: 0.8313,
+    a: 1.0,
+};
+
 pub enum Button {
     SuccessAction,
     CancelAction,

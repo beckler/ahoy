@@ -44,7 +44,10 @@ fn main() {
     // configure std logging
     stderrlog::new()
         .module(module_path!())
-        .module("pirate-midi-rs")
+        .module("pirate_midi_rs")
+        .module("dfu_libusb")
+        .module("dfu_core")
+        .module("rusb")
         .verbosity(args.verbose)
         .timestamp(stderrlog::Timestamp::Second)
         .init()
