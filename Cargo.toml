@@ -14,7 +14,7 @@ clap = { version = "3.2.16", features = ["derive"] }
 crossbeam-channel = "0.5.6"
 dfu-libusb = "0.3.0"
 futures = "0.3.21"
-iced = { version = "0.4.2", features = ["default", "svg", "debug", "async-std"] }
+iced = { version = "0.4.2", features = ["svg", "image", "debug", "async-std"] }
 iced_aw = "0.2.0"
 iced_futures = "0.4.1"
 iced_lazy = "0.1.1"

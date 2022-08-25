@@ -8,6 +8,91 @@ use super::DEFAULT_FONT_COLOR;
 // COLORS
 // Colors are between 0.0 and 1.0, but most color codes are in u8 with a max value of 255.
 // So to translate from u8 to float, do this: {hex} / 255.0 = {decimal}
+
+// #1F2528 - R31/G37/B40
+pub static BLACK: Color = Color {
+    r: 0.1216,
+    g: 0.1450,
+    b: 0.1568,
+    a: 1.0,
+};
+
+// #EF5280 - R239/G82/B128
+pub static PRIMARY: Color = Color {
+    r: 0.9372,
+    g: 0.3215,
+    b: 0.5019,
+    a: 1.0,
+};
+
+// #F15A5B - R241/G90/B91
+// pub static PRIMARY_END: Color = Color {
+//     r: 0.9450,
+//     g: 0.3529,
+//     b: 0.3568,
+//     a: 1.0,
+// };
+
+// #5B8DCA - R91/G141/B202
+pub static SECONDARY: Color = Color {
+    r: 0.3568,
+    g: 0.5529,
+    b: 0.7921,
+    a: 1.0,
+};
+pub static SECONDARY_HOVER: Color = Color {
+    r: 0.3568,
+    g: 0.5529,
+    b: 0.7921,
+    a: 0.8,
+};
+pub static SECONDARY_CLICK: Color = Color {
+    r: 0.3568,
+    g: 0.5529,
+    b: 0.7921,
+    a: 0.6,
+};
+
+// #85D1D4 - R133/G209/B212
+pub static SECONDARY_END: Color = Color {
+    r: 0.4784,
+    g: 0.8196,
+    b: 0.8313,
+    a: 1.0,
+};
+pub static SECONDARY_END_HOVER: Color = Color {
+    r: 0.4784,
+    g: 0.8196,
+    b: 0.8313,
+    a: 0.8,
+};
+pub static SECONDARY_END_CLICK: Color = Color {
+    r: 0.4784,
+    g: 0.8196,
+    b: 0.8313,
+    a: 0.6,
+};
+
+// R248/G254/B167
+pub static PRERELEASE: Color = Color {
+    r: 0.9725,
+    g: 0.9960,
+    b: 0.6549,
+    a: 1.0,
+};
+pub static PRERELEASE_HOVER: Color = Color {
+    r: 0.9725,
+    g: 0.9960,
+    b: 0.6549,
+    a: 0.7,
+};
+pub static PRERELEASE_CLICK: Color = Color {
+    r: 0.9725,
+    g: 0.9960,
+    b: 0.6549,
+    a: 0.5,
+};
+
 pub enum Button {
     SuccessAction,
     CancelAction,
@@ -30,46 +115,52 @@ impl button::StyleSheet for Button {
         match self {
             Button::SuccessAction => button::Style {
                 background: Some(Background::Color(Color::TRANSPARENT)),
-                text_color: Color::from_rgb8(110, 196, 146),
-                border_color: Color::from_rgb8(110, 196, 146),
+                text_color: PRIMARY,
+                border_color: PRIMARY,
                 border_width: 1.0,
                 ..basic
             },
             Button::CancelAction => button::Style {
                 background: Some(Background::Color(Color::TRANSPARENT)),
-                text_color: Color::from_rgb8(223, 84, 107),
-                border_color: Color::from_rgb8(223, 84, 107),
+                text_color: SECONDARY,
+                border_color: SECONDARY,
                 border_width: 1.0,
                 ..basic
             },
             Button::FilterOption => button::Style {
-                background: Some(Background::Color(Color::from_rgb8(240, 245, 250))),
-                text_color: Color::from_rgb8(63, 112, 164),
+                background: Some(Background::Color(Color::TRANSPARENT)),
+                text_color: SECONDARY,
+                border_color: SECONDARY,
+                border_width: 1.0,
                 ..basic
             },
             Button::FilterSelected => button::Style {
-                background: Some(Background::Color(Color::from_rgb8(84, 140, 203))),
+                background: Some(Background::Color(SECONDARY)),
                 text_color: Color::WHITE,
                 ..basic
             },
             Button::Release => button::Style {
-                background: Some(Background::Color(Color::from_rgb8(239, 254, 252))),
-                text_color: Color::from_rgb8(69, 151, 132),
+                background: Some(Background::Color(Color::TRANSPARENT)),
+                text_color: SECONDARY_END,
+                border_color: SECONDARY_END,
+                border_width: 1.0,
                 ..basic
             },
             Button::PreRelease => button::Style {
-                background: Some(Background::Color(Color::from_rgb8(254, 250, 236))),
-                text_color: Color::from_rgb8(142, 110, 34),
+                background: Some(Background::Color(Color::TRANSPARENT)),
+                text_color: PRERELEASE,
+                border_color: PRERELEASE,
+                border_width: 1.0,
                 ..basic
             },
             Button::ReleaseSelected => button::Style {
-                background: Some(Background::Color(Color::from_rgb8(95, 206, 179))),
-                text_color: Color::WHITE,
+                background: Some(Background::Color(SECONDARY_END)),
+                text_color: BLACK,
                 ..basic
             },
             Button::PreReleaseSelected => button::Style {
-                background: Some(Background::Color(Color::from_rgb8(250, 225, 149))),
-                text_color: Color::from_rgb8(75, 67, 44),
+                background: Some(Background::Color(PRERELEASE)),
+                text_color: BLACK,
                 ..basic
             },
         }
@@ -80,19 +171,25 @@ impl button::StyleSheet for Button {
 
         button::Style {
             text_color: match self {
-                Button::SuccessAction | Button::CancelAction => Color::WHITE,
-                _ => active.text_color,
+                Button::FilterSelected
+                | Button::FilterOption
+                | Button::SuccessAction
+                | Button::CancelAction => Color::WHITE,
+                _ => BLACK,
+            },
+            border_color: match self {
+                Button::Release => SECONDARY_END_HOVER,
+                Button::PreRelease => PRERELEASE_HOVER,
+                Button::FilterOption => SECONDARY_HOVER,
+                _ => active.border_color,
             },
             background: match self {
-                Button::SuccessAction => Some(Background::Color(Color::from_rgb8(110, 196, 146))),
-                Button::CancelAction => Some(Background::Color(Color::from_rgb8(223, 84, 107))),
-                Button::FilterOption => Some(Background::Color(Color::from_rgb8(230, 239, 248))),
-                Button::Release => Some(Background::Color(Color::from_rgb8(228, 254, 250))),
-                Button::PreRelease => Some(Background::Color(Color::from_rgb8(253, 246, 224))),
-                Button::ReleaseSelected => Some(Background::Color(Color::from_rgb8(0, 196, 167))),
-                Button::PreReleaseSelected => {
-                    Some(Background::Color(Color::from_rgb8(255, 220, 125)))
-                }
+                Button::Release => Some(Background::Color(SECONDARY_END_HOVER)),
+                Button::PreRelease => Some(Background::Color(PRERELEASE_HOVER)),
+                Button::CancelAction => Some(Background::Color(SECONDARY_HOVER)),
+                Button::FilterOption => Some(Background::Color(SECONDARY_HOVER)),
+                Button::SuccessAction => Some(Background::Color(PRIMARY)),
+
                 _ => active.background,
             },
             ..active
@@ -103,13 +200,21 @@ impl button::StyleSheet for Button {
         let hovered = self.hovered();
 
         button::Style {
+            border_color: match self {
+                Button::Release | Button::ReleaseSelected => SECONDARY_END_CLICK,
+                Button::PreRelease | Button::PreReleaseSelected => PRERELEASE_CLICK,
+                Button::FilterOption | Button::FilterSelected => SECONDARY_CLICK,
+                _ => hovered.border_color,
+            },
             background: match self {
-                Button::FilterOption => Some(Background::Color(Color::from_rgb8(221, 232, 245))),
-                Button::Release => Some(Background::Color(Color::from_rgb8(218, 254, 248))),
-                Button::PreRelease => Some(Background::Color(Color::from_rgb8(253, 243, 213))),
-                Button::ReleaseSelected => Some(Background::Color(Color::from_rgb8(0, 184, 156))),
-                Button::PreReleaseSelected => {
-                    Some(Background::Color(Color::from_rgb8(255, 217, 112)))
+                Button::Release | Button::ReleaseSelected => {
+                    Some(Background::Color(SECONDARY_END_CLICK))
+                }
+                Button::PreRelease | Button::PreReleaseSelected => {
+                    Some(Background::Color(PRERELEASE_CLICK))
+                }
+                Button::FilterOption | Button::FilterSelected => {
+                    Some(Background::Color(SECONDARY_CLICK))
                 }
                 _ => hovered.background,
             },
@@ -128,6 +233,7 @@ impl container::StyleSheet for Container {
         let basic = container::Style {
             text_color: Some(DEFAULT_FONT_COLOR),
             border_radius: DEFAULT_BORDER_RADIUS,
+            background: Some(Background::Color(BLACK)),
             ..container::Style::default()
         };
 

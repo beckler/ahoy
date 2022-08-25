@@ -3,7 +3,10 @@ use iced_native::widget::Svg;
 
 use crate::{
     command::device::UsbConnection,
-    gui::{Message, DEFAULT_PADDING, IMAGE_BRIDGE_4_LIGHT, IMAGE_BRIDGE_6_LIGHT},
+    gui::{
+        Message, DEFAULT_PADDING, IMAGE_BRIDGE_4_DARK, IMAGE_BRIDGE_6_DARK, SECONDARY_FONT,
+        SECONDARY_FONT_SIZE,
+    },
 };
 
 #[derive(Default, Debug, Clone)]
@@ -13,15 +16,24 @@ impl DeviceView {
     pub fn view<'a>(&self, conn: &'a UsbConnection) -> Element<'a, Message> {
         // pull the brand for the device
         let model_brand = match conn.details.device_model.trim().to_lowercase().as_str() {
-            "bridge4" => Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_LIGHT)),
-            _ => Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_LIGHT)),
+            "bridge4" => Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_DARK)),
+            _ => Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_DARK)),
         }
         .width(Length::Units(100));
 
         // build the brand column
         let status_text: Row<Message> = Row::new()
-            .push(Text::new("CONNECTED").color(Color::from_rgb8(100, 183, 93)))
-            .push(Text::new(format!(" - {}", conn.details.device_name)));
+            .push(
+                Text::new("CONNECTED")
+                    .color(Color::from_rgb8(100, 183, 93))
+                    .font(SECONDARY_FONT)
+                    .size(SECONDARY_FONT_SIZE),
+            )
+            .push(
+                Text::new(format!(" - {}", conn.details.device_name))
+                    .font(SECONDARY_FONT)
+                    .size(SECONDARY_FONT_SIZE),
+            );
 
         // build the status column
         let status_column: Column<Message> = Column::new()
@@ -29,7 +41,11 @@ impl DeviceView {
             // .padding([0, DEFAULT_PADDING])
             .width(Length::Fill)
             .push(status_text)
-            .push(Text::new(format!("UID: {}", conn.details.uid)));
+            .push(
+                Text::new(format!("UID: {}", conn.details.uid))
+                    .font(SECONDARY_FONT)
+                    .size(SECONDARY_FONT_SIZE),
+            );
 
         // build the device row
         let device_row: Element<Message> = Row::new()

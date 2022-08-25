@@ -6,28 +6,38 @@ mod view;
 
 /* STATIC RESOURCES */
 // images for light mode
-pub static IMAGE_USB_CABLE_LIGHT: &[u8] = include_bytes!("../../resources/usb-light.svg");
-pub static IMAGE_BRIDGE_6_LIGHT: &[u8] = include_bytes!("../../resources/bridge6-light.svg");
-pub static IMAGE_BRIDGE_4_LIGHT: &[u8] = include_bytes!("../../resources/bridge4-light.svg");
+// pub static IMAGE_USB_CABLE_LIGHT: &[u8] = include_bytes!("../../resources/usb-light.svg");
+// pub static IMAGE_BRIDGE_6_LIGHT: &[u8] = include_bytes!("../../resources/bridge6-light.svg");
+// pub static IMAGE_BRIDGE_4_LIGHT: &[u8] = include_bytes!("../../resources/bridge4-light.svg");
 
 // images for dark mode
-// pub static IMAGE_USB_CABLE_DARK: &[u8] = include_bytes!("../../resources/usb-dark.svg");
-// pub static IMAGE_BRIDGE_6_DARK: &[u8] = include_bytes!("../../resources/bridge6-dark.svg");
-// pub static IMAGE_BRIDGE_4_DARK: &[u8] = include_bytes!("../../resources/bridge4-dark.svg");
+pub static IMAGE_USB_CABLE_DARK: &[u8] = include_bytes!("../../resources/usb-dark.svg");
+pub static IMAGE_BRIDGE_6_DARK: &[u8] = include_bytes!("../../resources/bridge6-dark.svg");
+pub static IMAGE_BRIDGE_4_DARK: &[u8] = include_bytes!("../../resources/bridge4-dark.svg");
 
-pub static DEFAULT_FONT: &[u8] = include_bytes!("../../resources/RobotoMono-Regular.ttf");
+// images for both
+pub static IMAGE_PIRATE_MIDI_LOGO: &[u8] = include_bytes!("../../resources/pirate-midi-pink.png");
+
+// DEFAULTS
+pub static DEFAULT_FONT: &[u8] = include_bytes!("../../resources/OpenSans-Regular.ttf");
+pub static SECONDARY_FONT: Font = Font::External {
+    name: "RobotoMono",
+    bytes: include_bytes!("../../resources/RobotoMono-Regular.ttf"),
+};
 pub static DEFAULT_PADDING: u16 = 10;
-pub static DEFAULT_FONT_SIZE: u16 = 18;
+pub static DEFAULT_FONT_SIZE: u16 = 20;
+pub static SECONDARY_FONT_SIZE: u16 = 18;
 pub static DEFAULT_BORDER_RADIUS: f32 = 6.0;
 pub static DEFAULT_HEADING_FONT_SIZE: u16 = 24;
-pub static DEFAULT_FONT_COLOR: Color = Color {
-    r: 0.29,
-    g: 0.29,
-    b: 0.29,
-    a: 1.0,
-};
+pub static DEFAULT_FONT_COLOR: Color = Color::WHITE;
+// Color {
+//     r: 0.29,
+//     g: 0.29,
+//     b: 0.29,
+//     a: 1.0,
+// };
 
-use iced::{window, Application, Color, Command, Element, Settings, Subscription};
+use iced::{window, Application, Color, Command, Element, Font, Settings, Subscription};
 use log::*;
 use std::path::PathBuf;
 
@@ -127,7 +137,7 @@ impl Application for Ahoy {
     }
 
     fn title(&self) -> String {
-        String::from("AHOY! - [UNOFFICIAL] Pirate MIDI Firmware Updater")
+        String::from("AHOY! - Pirate MIDI Firmware Updater")
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
@@ -145,7 +155,6 @@ impl Application for Ahoy {
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Filter {
-    All,
     #[default]
     Stable,
     PreRelease,
@@ -154,7 +163,6 @@ pub enum Filter {
 impl Filter {
     fn matches(&self, release: &Release) -> bool {
         match self {
-            Filter::All => true,
             Filter::Stable => !release.prerelease,
             Filter::PreRelease => release.prerelease,
         }
