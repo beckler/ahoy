@@ -82,6 +82,7 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
                     ahoy.releases = None;
                     ahoy.selected_version = None;
                 }
+                return Command::none();
             }
         },
         Message::EnterBootloader => {
