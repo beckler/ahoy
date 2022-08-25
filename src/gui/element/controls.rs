@@ -27,7 +27,7 @@ impl ControlsView {
                 .style(if filter == current_filter {
                     style::Button::FilterSelected
                 } else {
-                    style::Button::FilterActive
+                    style::Button::FilterOption
                 });
 
             button.on_press(Message::ReleaseFilterChanged(filter))

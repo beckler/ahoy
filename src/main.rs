@@ -12,6 +12,7 @@ use crate::{
         update::update_self,
     },
 };
+use async_std::task;
 use clap::Parser;
 use log::{error, info};
 
@@ -25,6 +26,7 @@ const USB_VENDOR_ID: u16 = 0x0483;
 const USB_PRODUCT_ID: u16 = 0x5740;
 const USB_PRODUCT_DFU_ID: u16 = 0xDF11;
 const USB_TIMEOUT: Duration = Duration::from_secs(1);
+const GITHUB_API_URL: &str = "https://api.github.com";
 const GITHUB_ORG: &str = "Pirate-MIDI";
 const GITHUB_REPO: &str = "Pirate-MIDI-Features-Bug-Tracking";
 
@@ -48,6 +50,7 @@ fn main() {
         .module("dfu_libusb")
         .module("dfu_core")
         .module("rusb")
+        .module("surf")
         .verbosity(args.verbose)
         .timestamp(stderrlog::Timestamp::Second)
         .init()
@@ -59,76 +62,72 @@ fn main() {
     match args.command {
         Some(cmd) => match cmd {
             // Commands::List => todo!(),
-            Commands::Install(args) => tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .unwrap()
-                .block_on(async {
-                    // get file size
-                    let file_size = match args.file.metadata() {
-                        Ok(meta) => meta.len(),
+            Commands::Install(args) => task::block_on(async {
+                // get file size
+                let file_size = match args.file.metadata() {
+                    Ok(meta) => meta.len(),
+                    Err(err) => {
+                        error!("unable to retrieve file size: {}", err);
+                        std::process::exit(0x0200);
+                    }
+                };
+                info!("binary size: {}", file_size);
+
+                // send or skip booloader command
+                if !args.skip_bootloader {
+                    // enter bootloader
+                    println!("entering bootloader mode...");
+                    match enter_bootloader().await {
+                        Ok(_) => (), // continue
                         Err(err) => {
-                            error!("unable to retrieve file size: {}", err);
-                            std::process::exit(0x0200);
+                            error!("device unable to enter bootloader mode: {}", err);
+                            std::process::exit(0x0300);
                         }
                     };
-                    info!("binary size: {}", file_size);
 
-                    // send or skip booloader command
-                    if !args.skip_bootloader {
-                        // enter bootloader
-                        println!("entering bootloader mode...");
-                        match enter_bootloader().await {
-                            Ok(_) => (), // continue
-                            Err(err) => {
-                                error!("device unable to enter bootloader mode: {}", err);
-                                std::process::exit(0x0300);
-                            }
-                        };
+                    // sleep to wait for bootloader mode
+                    println!("pausing thread for 3 seconds to wait for bootloader mode...");
+                    std::thread::sleep(Duration::from_secs(3));
+                }
 
-                        // sleep to wait for bootloader mode
-                        println!("pausing thread for 3 seconds to wait for bootloader mode...");
-                        std::thread::sleep(Duration::from_secs(3));
-                    }
+                // attempt install
+                println!("installing...");
 
-                    // attempt install
-                    println!("installing...");
-
-                    // create progress bar
-                    let bar = indicatif::ProgressBar::new(file_size as u64);
-                    bar.set_style(
-                        indicatif::ProgressStyle::default_bar()
-                            .template(
-                                "{spinner:.green} [{elapsed_precise}] [{bar:27.cyan/blue}] \
+                // create progress bar
+                let bar = indicatif::ProgressBar::new(file_size as u64);
+                bar.set_style(
+                    indicatif::ProgressStyle::default_bar()
+                        .template(
+                            "{spinner:.green} [{elapsed_precise}] [{bar:27.cyan/blue}] \
                             {bytes}/{total_bytes} ({bytes_per_sec}) ({eta}) {msg:10}",
-                            )
-                            .unwrap()
-                            .progress_chars("#>-"),
-                    );
+                        )
+                        .unwrap()
+                        .progress_chars("#>-"),
+                );
 
-                    let install_result = install_binary(
-                        args.file,
-                        Some({
-                            let bar = bar.clone();
-                            move |count| {
-                                bar.inc(count as u64);
-                            }
-                        }),
-                    )
-                    .await;
-
-                    // handle results
-                    match install_result {
-                        Ok(_) => (),
-                        Err(err) => {
-                            error!("unable to install: {:?}", err);
-                            std::process::exit(0x0400);
+                let install_result = install_binary(
+                    args.file,
+                    Some({
+                        let bar = bar.clone();
+                        move |count| {
+                            bar.inc(count as u64);
                         }
-                    }
+                    }),
+                )
+                .await;
 
-                    // finish progress bar
-                    bar.finish();
-                }),
+                // handle results
+                match install_result {
+                    Ok(_) => (),
+                    Err(err) => {
+                        error!("unable to install: {:?}", err);
+                        std::process::exit(0x0400);
+                    }
+                }
+
+                // finish progress bar
+                bar.finish();
+            }),
             Commands::Update => match update_self(true) {
                 Ok(_) => println!("update complete"),
                 Err(err) => error!("unable to perform update: {}", err),

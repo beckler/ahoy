@@ -6,7 +6,7 @@ use pirate_midi_rs::*;
 
 use crate::command::{
     device::{enter_bootloader, install_binary, UsbConnection},
-    release::{fetch_asset, fetch_releases},
+    github::{fetch_asset, fetch_releases},
 };
 
 use super::{usb, Ahoy, Error, Message};

@@ -29,12 +29,15 @@ pub static DEFAULT_FONT_COLOR: Color = Color {
 
 use iced::{window, Application, Color, Command, Element, Settings, Subscription};
 use log::*;
-use octocrab::models::repos::{Asset, Release};
 use std::path::PathBuf;
 
 use crate::{
     cli::{self, Args},
-    command::{device::UsbConnection, CommandError},
+    command::{
+        device::UsbConnection,
+        github::{Asset, Release},
+        CommandError,
+    },
     usb::observer::UsbDevice,
 };
 
@@ -166,8 +169,8 @@ pub enum Error {
     Install(String),
 }
 
-impl From<reqwest::Error> for Error {
-    fn from(error: reqwest::Error) -> Error {
+impl From<surf::Error> for Error {
+    fn from(error: surf::Error) -> Error {
         debug!("ERROR: {}", error);
         Error::RemoteApi(error.to_string())
     }

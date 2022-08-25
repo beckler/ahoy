@@ -8,51 +8,10 @@ use super::DEFAULT_FONT_COLOR;
 // COLORS
 // Colors are between 0.0 and 1.0, but most color codes are in u8 with a max value of 255.
 // So to translate from u8 to float, do this: {hex} / 255.0 = {decimal}
-
-// #1F2528 - R31/G37/B40
-pub static BLACK: Color = Color {
-    r: 0.1216,
-    g: 0.1450,
-    b: 0.1568,
-    a: 1.0,
-};
-
-// #EF5280 - R239/G82/B128
-pub static PRIMARY: Color = Color {
-    r: 0.9372,
-    g: 0.3215,
-    b: 0.5019,
-    a: 1.0,
-};
-
-// #F15A5B - R241/G90/B91
-pub static PRIMARY_END: Color = Color {
-    r: 0.9450,
-    g: 0.3529,
-    b: 0.3568,
-    a: 1.0,
-};
-
-// #5B8DCA - R91/G141/B202
-pub static SECONDARY: Color = Color {
-    r: 0.3568,
-    g: 0.5529,
-    b: 0.7921,
-    a: 1.0,
-};
-
-// #85D1D4 - R133/G209/B212
-pub static SECONDARY_END: Color = Color {
-    r: 0.4784,
-    g: 0.8196,
-    b: 0.8313,
-    a: 1.0,
-};
-
 pub enum Button {
     SuccessAction,
     CancelAction,
-    FilterActive,
+    FilterOption,
     FilterSelected,
     Release,
     ReleaseSelected,
@@ -83,7 +42,7 @@ impl button::StyleSheet for Button {
                 border_width: 1.0,
                 ..basic
             },
-            Button::FilterActive => button::Style {
+            Button::FilterOption => button::Style {
                 background: Some(Background::Color(Color::from_rgb8(240, 245, 250))),
                 text_color: Color::from_rgb8(63, 112, 164),
                 ..basic
@@ -127,7 +86,7 @@ impl button::StyleSheet for Button {
             background: match self {
                 Button::SuccessAction => Some(Background::Color(Color::from_rgb8(110, 196, 146))),
                 Button::CancelAction => Some(Background::Color(Color::from_rgb8(223, 84, 107))),
-                Button::FilterActive => Some(Background::Color(Color::from_rgb8(230, 239, 248))),
+                Button::FilterOption => Some(Background::Color(Color::from_rgb8(230, 239, 248))),
                 Button::Release => Some(Background::Color(Color::from_rgb8(228, 254, 250))),
                 Button::PreRelease => Some(Background::Color(Color::from_rgb8(253, 246, 224))),
                 Button::ReleaseSelected => Some(Background::Color(Color::from_rgb8(0, 196, 167))),
@@ -145,7 +104,7 @@ impl button::StyleSheet for Button {
 
         button::Style {
             background: match self {
-                Button::FilterActive => Some(Background::Color(Color::from_rgb8(221, 232, 245))),
+                Button::FilterOption => Some(Background::Color(Color::from_rgb8(221, 232, 245))),
                 Button::Release => Some(Background::Color(Color::from_rgb8(218, 254, 248))),
                 Button::PreRelease => Some(Background::Color(Color::from_rgb8(253, 243, 213))),
                 Button::ReleaseSelected => Some(Background::Color(Color::from_rgb8(0, 184, 156))),
