@@ -5,7 +5,6 @@ use crate::gui::{style, Filter, Message, DEFAULT_PADDING};
 #[derive(Debug, Default, Clone)]
 pub struct ControlsView {
     fetch_button: button::State,
-    all_button: button::State,
     stable_button: button::State,
     prerelease_button: button::State,
 }
@@ -14,7 +13,6 @@ impl ControlsView {
     pub fn view(&mut self, filter: &Filter) -> Element<Message> {
         let ControlsView {
             fetch_button,
-            all_button,
             stable_button,
             prerelease_button,
         } = self;
@@ -27,7 +25,7 @@ impl ControlsView {
                 .style(if filter == current_filter {
                     style::Button::FilterSelected
                 } else {
-                    style::Button::FilterActive
+                    style::Button::FilterOption
                 });
 
             button.on_press(Message::ReleaseFilterChanged(filter))
@@ -62,8 +60,7 @@ impl ControlsView {
                         "Beta",
                         Filter::PreRelease,
                         filter,
-                    ))
-                    .push(filter_button(all_button, "All", Filter::All, filter)),
+                    )),
             )
             .push(Space::new(Length::Fill, Length::Shrink))
             .push(refresh_button)

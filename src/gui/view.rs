@@ -1,10 +1,11 @@
 use iced::{
-    svg::Handle, Alignment, Color, Column, Container, Element, Length, Row, Rule, Space, Svg, Text,
+    image, svg::Handle, Alignment, Color, Column, Container, Element, Length, Row, Rule, Space,
+    Svg, Text,
 };
 
 use super::{
-    style, Ahoy, Message, DEFAULT_HEADING_FONT_SIZE, DEFAULT_PADDING, IMAGE_BRIDGE_4_LIGHT,
-    IMAGE_BRIDGE_6_LIGHT, IMAGE_USB_CABLE_LIGHT,
+    style, Ahoy, Message, DEFAULT_HEADING_FONT_SIZE, DEFAULT_PADDING, IMAGE_BRIDGE_4_DARK,
+    IMAGE_BRIDGE_6_DARK, IMAGE_PIRATE_MIDI_LOGO, IMAGE_USB_CABLE_DARK,
 };
 
 pub(crate) fn handle_view(ahoy: &mut Ahoy) -> Element<Message> {
@@ -39,11 +40,16 @@ pub(crate) fn handle_view(ahoy: &mut Ahoy) -> Element<Message> {
     } else {
         /* WHEN A DEVICE IS NOT CONNECTED */
         let usb_cable_image =
-            Svg::new(Handle::from_memory(IMAGE_USB_CABLE_LIGHT)).height(Length::Units(400));
+            Svg::new(Handle::from_memory(IMAGE_USB_CABLE_DARK)).height(Length::Units(400));
 
-        let bridge6 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_LIGHT)).width(Length::Units(100));
+        let bridge6 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_DARK)).width(Length::Units(100));
 
-        let bridge4 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_LIGHT)).width(Length::Units(100));
+        let bridge4 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_DARK)).width(Length::Units(100));
+
+        let pm_logo = iced_native::widget::Image::new(image::Handle::from_memory(
+            IMAGE_PIRATE_MIDI_LOGO.to_vec(),
+        ))
+        .width(Length::Units(200));
 
         Column::new()
             .align_items(Alignment::Center)
@@ -60,6 +66,8 @@ pub(crate) fn handle_view(ahoy: &mut Ahoy) -> Element<Message> {
                     .push(Text::new("or").size(DEFAULT_HEADING_FONT_SIZE))
                     .push(bridge4),
             )
+            .push(Space::with_height(Length::Fill))
+            .push(pm_logo)
             .into()
     };
 

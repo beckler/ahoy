@@ -1,5 +1,5 @@
 pub mod device;
-pub mod release;
+pub mod github;
 pub mod update;
 
 #[derive(thiserror::Error, Debug, Clone)]
@@ -12,4 +12,12 @@ pub enum CommandError {
     Device(String),
     #[error("unable to fetch releases")]
     Retieval(String),
+    #[error("Failed to make a request: {0:?}")]
+    Http(String),
+}
+
+impl From<surf::Error> for CommandError {
+    fn from(err: surf::Error) -> Self {
+        CommandError::Http(err.to_string())
+    }
 }

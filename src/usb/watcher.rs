@@ -1,3 +1,4 @@
+use async_std::task;
 use futures::channel::mpsc;
 use futures::channel::mpsc::Receiver;
 use futures::SinkExt;
@@ -9,7 +10,7 @@ use super::observer::{Event, Observer};
 pub fn subscribe() -> Receiver<Event> {
     let (mut sender, receiver) = mpsc::channel(0);
 
-    tokio::spawn(async move {
+    task::spawn(async move {
         // let subscription = Observer::new().with_poll_interval(1).subscribe();
         let observer = match Observer::new() {
             Ok(sub) => sub,

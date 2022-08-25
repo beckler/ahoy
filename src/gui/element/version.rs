@@ -2,10 +2,9 @@ use iced::{
     alignment::Horizontal, button, scrollable, Alignment, Button, Column, Container, Element,
     Length, Row, Rule, Scrollable, Space, Text,
 };
-use octocrab::models::repos::Release;
 
 use crate::{
-    command::device::UsbConnection,
+    command::{device::UsbConnection, github::Release},
     gui::{
         self,
         style::{self},
@@ -143,7 +142,7 @@ impl VersionList {
                                     .on_press(Message::Download(Box::new(asset.clone())))
                                     .padding(DEFAULT_PADDING)
                                     .width(Length::Units(250))
-                                    .style(style::Button::ReleaseSelected),
+                                    .style(style::Button::SuccessAction),
                                 ),
                             None => install_bar.push(Text::new(
                                 "No assets are available for download for this device",
