@@ -31,11 +31,6 @@ serialport = "4.2.0"
 stderrlog = "0.5.3"
 surf = { version = "2.3.2", features = ["h1-client-rustls"] }
 thiserror = "1.0.31"
-<<<<<<< HEAD
-tokio = { version = "1.20.1", features = ["sync"] }
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1.12"
-=======
-
->>>>>>> 283892f2ef5d956e1458389e1bc023e89eb55aa1
