@@ -57,20 +57,20 @@
     <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
 <?endif ?>
 
-<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
-
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:difxapp='http://schemas.microsoft.com/wix/DifxAppExtension'>
     <Product
         Id='*'
-        Name='ahoy'
-        UpgradeCode='7B785652-CF84-4CDC-90D4-8111F571EEA5'
-        Manufacturer='Ahoy Contributors'
+        Name='Ahoy'
+        UpgradeCode='BE0FA892-CA0C-4340-9E9E-BDC6E0CDC425'
+        Manufacturer='Ahoy Contributors @ Pirate MIDI'
         Language='1033'
         Codepage='1252'
         Version='$(var.Version)'>
 
         <Package Id='*'
             Keywords='Installer'
-            Manufacturer='Ahoy Contributors'
+            Description='The cross-platform firmware installer for Pirate MIDI devices!'
+            Manufacturer='Ahoy Contributors @ Pirate MIDI'
             InstallerVersion='450'
             Languages='1033'
             Compressed='yes'
@@ -83,34 +83,54 @@
             DowngradeErrorMessage='A newer version of [ProductName] is already installed. Setup will now exit.'/>
 
         <Media Id='1' Cabinet='media1.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1'/>
-        <Property Id='DiskPrompt' Value='ahoy Installation'/>
+        <Property Id='DiskPrompt' Value='Ahoy Installation'/>
+
+        <Icon Id='ProductICO' SourceFile='resources\ahoy.ico'/>
 
         <Directory Id='TARGETDIR' Name='SourceDir'>
-            <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
-                <Directory Id='APPLICATIONFOLDER' Name='ahoy'>
-                    
-                    <!--
-                      Enabling the license sidecar file in the installer is a four step process:
-
-                      1. Uncomment the `Component` tag and its contents.
-                      2. Change the value for the `Source` attribute in the `File` tag to a path
-                         to the file that should be included as the license sidecar file. The path
-                         can, and probably should be, relative to this file.
-                      3. Change the value for the `Name` attribute in the `File` tag to the
-                         desired name for the file when it is installed alongside the `bin` folder
-                         in the installation directory. This can be omitted if the desired name is
-                         the same as the file name.
-                      4. Uncomment the `ComponentRef` tag with the Id attribute value of "License"
-                         further down in this file.
-                    -->
-                    <!--
-                    <Component Id='License' Guid='*'>
-                        <File Id='LicenseFile' Name='ChangeMe' DiskId='1' Source='C:\Path\To\File' KeyPath='yes'/>
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="Pirate MIDI">
+                    <Component Id="ApplicationShortcut" Guid="*">
+                        <Shortcut Id="ApplicationStartMenuShortcut" 
+                            Name="Pirate MIDI Firmware Updater"
+                            Icon="ProductICO"
+                            Description="Pirate MIDI Firmware Installer"
+                            Target="[APPLICATIONFOLDER]\bin\ahoy.exe"
+                            WorkingDirectory="APPLICATIONFOLDER"/>
+                        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+                        <RegistryValue Root="HKCU" Key="Software\PirateMIDI\Ahoy" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
                     </Component>
-                    -->
+                </Directory>
+            </Directory>
+            <Directory Id="System64Folder">
+                <Component Id="libusbK" Win64="yes" Permanent="no">
+                    <File Id="libusbK.dll" KeyPath="yes" Source="install\windows\pkg_resources\libusbK.dll" />
+                </Component>
+            </Directory>
+            <Directory Id="SystemFolder">
+                <Component Id="libusbK_x86" Win64="no" Permanent="no">
+                    <File Id="libusbK_x86.dll" KeyPath="yes" Source="install\windows\pkg_resources\libusbK_x86.dll" />
+                </Component>
+            </Directory>
+            <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
+                <Directory Id='APPLICATIONFOLDER' Name='Ahoy'>
+                    <!--
+                      Disabling the license sidecar file in the installer is a two step process:
 
+                      1. Comment out or remove the `Component` tag along with its contents.
+                      2. Comment out or remove the `ComponentRef` tag with the "License" Id
+                         attribute value further down in this file.
+                    -->
+                    <Component Id='License' Guid='*'>
+                        <File Id='LicenseFile'
+                            Name='License.rtf'
+                            DiskId='1'
+                            Source='install\windows\pkg_resources\License.rtf'
+                            KeyPath='yes'/>
+                    </Component>
+                    
                     <Directory Id='Bin' Name='bin'>
-                        <Component Id='Path' Guid='F1ECED74-19C6-4265-9B0B-6B979C596C5E' KeyPath='yes'>
+                        <Component Id='Path' Guid='F2B2124C-E9E6-4177-B269-702B64D568F3' KeyPath='yes'>
                             <Environment
                                 Id='PATH'
                                 Name='PATH'
@@ -129,27 +149,30 @@
                                 KeyPath='yes'/>
                         </Component>
                     </Directory>
-                </Directory>
-            </Directory>
+                </Directory>                
+            </Directory>        
         </Directory>
-
+    
         <Feature
             Id='Binaries'
-            Title='Application'
+            Title='Firmware Updater'
             Description='Installs all binaries and the license.'
             Level='1'
             ConfigurableDirectory='APPLICATIONFOLDER'
             AllowAdvertise='no'
             Display='expand'
             Absent='disallow'>
-            
             <!--
-              Uncomment the following `ComponentRef` tag to add the license
-              sidecar file to the installer.
+              Comment out or remove the following `ComponentRef` tag to remove
+              the license sidecar file from the installer.
             -->
-            <!--<ComponentRef Id='License'/>-->
-
+            <ComponentRef Id='License'/>
+            
             <ComponentRef Id='binary0'/>
+
+            <ComponentRef Id='libusbK'/>
+
+            <ComponentRef Id='libusbK_x86'/>
 
             <Feature
                 Id='Environment'
@@ -159,10 +182,17 @@
                 Absent='allow'>
                 <ComponentRef Id='Path'/>
             </Feature>
+
+            <Feature
+                Id='Shortcut'
+                Title='Application Shortcuts'
+                Description='Add the application shortcuts for [ProductName] on the Start Menu.'
+                Level='1'
+                Absent='allow'>
+                <ComponentRef Id="ApplicationShortcut" /> 
+            </Feature>
         </Feature>
-
         <SetProperty Id='ARPINSTALLLOCATION' Value='[APPLICATIONFOLDER]' After='CostFinalize'/>
-
         
         <!--
           Uncomment the following `Icon` and `Property` tags to change the product icon.
@@ -170,47 +200,31 @@
           The product icon is the graphic that appears in the Add/Remove
           Programs control panel for the application.
         -->
-        <!--<Icon Id='ProductICO' SourceFile='wix\Product.ico'/>-->
-        <!--<Property Id='ARPPRODUCTICON' Value='ProductICO' />-->
-
         
-        <!--
-          Adding a URL to Add/Remove Programs control panel listing for the
-          application is a two step process:
+        <Property Id='ARPPRODUCTICON' Value='ProductICO' />
 
-          1. Uncomment the following `Property` tag with the "ARPHELPLINK" Id
-             attribute value.
-          2. Change the value for `Value` attribute of the following
-             `Property` tag to a valid URL.
-        -->
-        <!--<Property Id='ARPHELPLINK' Value='ChangeMe'/>-->
-
+        <Property Id='ARPHELPLINK' Value='https://github.com/beckler/ahoy'/>
+        
         <UI>
             <UIRef Id='WixUI_FeatureTree'/>
-            
             <!--
-              Enabling the EULA dialog in the installer is a three step process:
+              Disabling the EULA dialog in the installer is a two step process:
 
-                1. Comment out or remove the two `Publish` tags that follow the
-                   `WixVariable` tag.
-                2. Uncomment the `<WixVariable Id='WixUILicenseRtf' Value='Path\to\Eula.rft'>` tag futher down
-                3. Replace the `Value` attribute of the `WixVariable` tag with
-                   the path to a RTF file that will be used as the EULA and
-                   displayed in the license agreement dialog.
+                 1. Uncomment the following two `Publish` tags
+                 2. Comment out or remove the `<WiXVariable Id='WixUILicenseRtf'...` tag further down
+
             -->
-            <Publish Dialog='WelcomeDlg' Control='Next' Event='NewDialog' Value='CustomizeDlg' Order='99'>1</Publish>
-            <Publish Dialog='CustomizeDlg' Control='Back' Event='NewDialog' Value='WelcomeDlg' Order='99'>1</Publish>
-
+            <!--<Publish Dialog='WelcomeDlg' Control='Next' Event='NewDialog' Value='CustomizeDlg' Order='99'>1</Publish>-->
+            <!--<Publish Dialog='CustomizeDlg' Control='Back' Event='NewDialog' Value='WelcomeDlg' Order='99'>1</Publish>-->
+            
         </UI>
 
-        
         <!--
-          Enabling the EULA dialog in the installer requires uncommenting
-          the following `WixUILicenseRTF` tag and changing the `Value`
-          attribute.
+          Disabling the EULA dialog in the installer requires commenting out
+          or removing the following `WixVariable` tag
         -->
-        <!-- <WixVariable Id='WixUILicenseRtf' Value='Relative\Path\to\Eula.rtf'/> -->
-
+        <WixVariable Id='WixUILicenseRtf' Value='install\windows\pkg_resources\License.rtf'/>
+        
         
         <!--
           Uncomment the next `WixVaraible` tag to customize the installer's
@@ -220,7 +234,7 @@
 
           The banner BMP dimensions are 493 x 58 pixels.
         -->
-        <!--<WixVariable Id='WixUIBannerBmp' Value='wix\Banner.bmp'/>-->
+        <WixVariable Id='WixUIBannerBmp' Value='install\windows\pkg_resources\banner.bmp'/>
 
         
         <!--
@@ -231,8 +245,6 @@
 
           The dialog BMP dimensions are 493 x 312 pixels.
         -->
-        <!--<WixVariable Id='WixUIDialogBmp' Value='wix\Dialog.bmp'/>-->
-
+        <WixVariable Id='WixUIDialogBmp' Value='install\windows\pkg_resources\dialog.bmp'/>
     </Product>
-
 </Wix>
