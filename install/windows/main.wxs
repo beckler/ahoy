@@ -102,16 +102,6 @@
                     </Component>
                 </Directory>
             </Directory>
-            <Directory Id="System64Folder">
-                <Component Id="libusbK" Win64="yes" Permanent="no">
-                    <File Id="libusbK.dll" KeyPath="yes" Source="install\windows\pkg_resources\libusbK.dll" />
-                </Component>
-            </Directory>
-            <Directory Id="SystemFolder">
-                <Component Id="libusbK_x86" Win64="no" Permanent="no">
-                    <File Id="libusbK_x86.dll" KeyPath="yes" Source="install\windows\pkg_resources\libusbK_x86.dll" />
-                </Component>
-            </Directory>
             <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
                 <Directory Id='APPLICATIONFOLDER' Name='Ahoy'>
                     <!--
@@ -148,6 +138,13 @@
                                 Source='$(var.CargoTargetBinDir)\ahoy.exe'
                                 KeyPath='yes'/>
                         </Component>
+                        <Component Id='binary1' Guid='*'>
+                            <File Id='InstallDriver'
+                                Name='InstallDriver.exe'
+                                DiskId='1'
+                                Source='install\windows\pkg_resources\InstallDriver.exe'
+                                KeyPath='yes'/>
+                        </Component>
                     </Directory>
                 </Directory>                
             </Directory>        
@@ -170,9 +167,7 @@
             
             <ComponentRef Id='binary0'/>
 
-            <ComponentRef Id='libusbK'/>
-
-            <ComponentRef Id='libusbK_x86'/>
+            <ComponentRef Id="binary1"/>
 
             <Feature
                 Id='Environment'
@@ -193,6 +188,17 @@
             </Feature>
         </Feature>
         <SetProperty Id='ARPINSTALLLOCATION' Value='[APPLICATIONFOLDER]' After='CostFinalize'/>
+
+        <CustomAction Id="PostInstall"
+            FileKey="InstallDriver"
+            ExeCommand=""
+            Execute="deferred"
+            Return="asyncNoWait"
+            Impersonate="no" />
+
+        <InstallExecuteSequence>
+            <Custom Action="PostInstall" Before="InstallFinalize">NOT Installed</Custom>
+        </InstallExecuteSequence>
         
         <!--
           Uncomment the following `Icon` and `Property` tags to change the product icon.
