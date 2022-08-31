@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/beckler/ahoy/compare/v0.5.0...v0.6.0) (2022-08-31)
+
+
+### Features
+
+* added driver to msi ([a88177b](https://github.com/beckler/ahoy/commit/a88177bf8cbe311790656c59c61a5739b53e5484))
+
 ## [0.5.0](https://github.com/beckler/ahoy/compare/v0.4.1...v0.5.0) (2022-08-30)
 
 
