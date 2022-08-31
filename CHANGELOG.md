@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.5.0](https://github.com/beckler/ahoy/compare/v0.4.1...v0.5.0) (2022-08-30)
+
+
+### Features
+
+* added wix installer files for windows ([547951d](https://github.com/beckler/ahoy/commit/547951d2417cf3cd8f50378d0cd2fd50c377816d))
+* functional windows installer ([57aa658](https://github.com/beckler/ahoy/commit/57aa658cf3a9179150a6fc41f92a71cda7d9bc81))
+* major style overhaul ([283892f](https://github.com/beckler/ahoy/commit/283892f2ef5d956e1458389e1bc023e89eb55aa1))
+* switched to new async runtime engine; fixes [#15](https://github.com/beckler/ahoy/issues/15) ([1d48695](https://github.com/beckler/ahoy/commit/1d48695ffaaffdde7bab985ff1466d8a3652b90a))
+
+
+### Bug Fixes
+
+* no idea is this is gonna fix shit ([96d1047](https://github.com/beckler/ahoy/commit/96d1047802d074a1e8a1e5523f9e872302e09aec))
+* windows issues ([b17fc64](https://github.com/beckler/ahoy/commit/b17fc6480664f48e1571f98e62365ab67d4f29ce))
+* windows issues ([6fd7aa1](https://github.com/beckler/ahoy/commit/6fd7aa1bbad4fe8be60d16aaa3581cc17527e31b))
+
 ## [0.4.1](https://github.com/beckler/ahoy/compare/v0.4.0...v0.4.1) (2022-08-16)
 
 
