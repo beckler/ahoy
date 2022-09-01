@@ -269,7 +269,12 @@ pub enum Card {
 impl card::StyleSheet for Card {
     fn active(&self) -> card::Style {
         let basic = card::Style {
-            background: Background::Color(Color::from_rgb8(245, 245, 245)),
+            close_color: Color::WHITE,
+            border_color: Color::from_rgb8(74, 74, 74),
+            head_text_color: Color::WHITE,
+            body_text_color: Color::WHITE,
+            foot_text_color: Color::WHITE,
+            background: Background::Color(BLACK),
             head_background: Color::TRANSPARENT.into(),
             border_radius: DEFAULT_BORDER_RADIUS,
             ..card::Style::default()

@@ -1,21 +1,19 @@
 use iced::{svg::Handle, Alignment, Color, Column, Container, Element, Length, Row, Text};
 use iced_native::widget::Svg;
+use pirate_midi_rs::check::CheckResponse;
 
-use crate::{
-    command::device::UsbConnection,
-    gui::{
-        Message, DEFAULT_PADDING, IMAGE_BRIDGE_4_DARK, IMAGE_BRIDGE_6_DARK, SECONDARY_FONT,
-        SECONDARY_FONT_SIZE,
-    },
+use crate::gui::{
+    Message, DEFAULT_PADDING, IMAGE_BRIDGE_4_DARK, IMAGE_BRIDGE_6_DARK, SECONDARY_FONT,
+    SECONDARY_FONT_SIZE,
 };
 
 #[derive(Default, Debug, Clone)]
 pub struct DeviceView {}
 
 impl DeviceView {
-    pub fn view<'a>(&self, conn: &'a UsbConnection) -> Element<'a, Message> {
+    pub fn view<'a>(&self, conn: &'a CheckResponse) -> Element<'a, Message> {
         // pull the brand for the device
-        let model_brand = match conn.details.device_model.trim().to_lowercase().as_str() {
+        let model_brand = match conn.device_model.trim().to_lowercase().as_str() {
             "bridge4" => Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_DARK)),
             _ => Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_DARK)),
         }
@@ -30,7 +28,7 @@ impl DeviceView {
                     .size(SECONDARY_FONT_SIZE),
             )
             .push(
-                Text::new(format!(" - {}", conn.details.device_name))
+                Text::new(format!(" - {}", conn.device_name))
                     .font(SECONDARY_FONT)
                     .size(SECONDARY_FONT_SIZE),
             );
@@ -42,7 +40,7 @@ impl DeviceView {
             .width(Length::Fill)
             .push(status_text)
             .push(
-                Text::new(format!("UID: {}", conn.details.uid))
+                Text::new(format!("UID: {}", conn.uid))
                     .font(SECONDARY_FONT)
                     .size(SECONDARY_FONT_SIZE),
             );

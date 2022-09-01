@@ -37,18 +37,18 @@ pub static DEFAULT_FONT_COLOR: Color = Color::WHITE;
 //     a: 1.0,
 // };
 
-use iced::{window, Application, Color, Command, Element, Font, Settings, Subscription};
+use iced::{button, window, Application, Color, Command, Element, Font, Settings, Subscription};
 use log::*;
+use pirate_midi_rs::check::CheckResponse;
+use rusb::Device;
 use std::path::PathBuf;
 
 use crate::{
     cli::{self, Args},
     command::{
-        device::UsbConnection,
         github::{Asset, Release},
         CommandError,
     },
-    usb::observer::UsbDevice,
 };
 
 use self::{
@@ -95,7 +95,8 @@ pub enum Message {
     EnterBootloader,
     WaitForBootloader(Result<(), CommandError>),
     Install,
-    PostInstall(Result<(), CommandError>),
+    AttemptReset,
+    PostInstallResult(Result<(), CommandError>),
 
     // install specific
     Download(Box<Asset>),
@@ -107,18 +108,28 @@ pub(crate) struct Ahoy {
     debug: bool,
     error: Option<Error>,
     filter: Filter,
+    device: DeviceState,
     status: DeviceView,
     controls: ControlsView,
     releases: Option<Vec<Release>>,
     versions: VersionList,
-    connection: Option<UsbConnection>,
     installer: InstallView,
-    installing: bool,
-    post_install: bool,
     confirm_modal: ConfirmModal,
-    dfu_connection: Option<UsbDevice>,
     selected_version: Option<Release>,
     installable_asset: Option<PathBuf>,
+    reset_button: button::State,
+}
+
+#[derive(Default, PartialEq)]
+pub(crate) enum DeviceState {
+    #[default]
+    Disconnected,
+    Connected {
+        device: Device<rusb::Context>,
+        details: CheckResponse,
+    },
+    DFU(Option<Device<rusb::Context>>),
+    PostInstall,
 }
 
 impl Application for Ahoy {
@@ -141,7 +152,9 @@ impl Application for Ahoy {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
+        // subscription::batch([
         usb::listener().map(Message::DeviceChangedAction)
+        // ])
     }
 
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {

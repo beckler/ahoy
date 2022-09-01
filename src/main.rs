@@ -56,7 +56,18 @@ fn main() {
         .init()
         .unwrap();
 
-    info!("ahoy mateys - starting up...");
+    info!("ahoy matey - starting up...");
+
+    let version = rusb::version();
+
+    info!(
+        "libusb v{}.{}.{}.{}{}",
+        version.major(),
+        version.minor(),
+        version.micro(),
+        version.nano(),
+        version.rc().unwrap_or("")
+    );
 
     // execute!
     match args.command {

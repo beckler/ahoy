@@ -1,6 +1,6 @@
 use iced::{
-    image, svg::Handle, Alignment, Color, Column, Container, Element, Length, Row, Rule, Space,
-    Svg, Text,
+    alignment::Horizontal, image, svg::Handle, Alignment, Button, Color, Column, Container,
+    Element, Length, Row, Rule, Space, Svg, Text,
 };
 
 use super::{
@@ -9,49 +9,22 @@ use super::{
 };
 
 pub(crate) fn handle_view(ahoy: &mut Ahoy) -> Element<Message> {
+    /* WHEN A DEVICE IS NOT CONNECTED */
+    let usb_cable_image =
+        Svg::new(Handle::from_memory(IMAGE_USB_CABLE_DARK)).height(Length::Units(400));
+
+    let bridge6 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_DARK)).width(Length::Units(100));
+
+    let bridge4 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_DARK)).width(Length::Units(100));
+
+    let pm_logo = iced_native::widget::Image::new(image::Handle::from_memory(
+        IMAGE_PIRATE_MIDI_LOGO.to_vec(),
+    ))
+    .width(Length::Units(200));
+
     // BUILD PRIMARY VIEW
-    let inner_content: Element<Message> = if let Some(conn) = &ahoy.connection {
-        /* WHEN A DEVICE IS CONNECTED */
-        if ahoy.installing {
-            Column::new()
-                .padding(DEFAULT_PADDING)
-                .push(ahoy.status.view(conn))
-                .push(Rule::horizontal(1))
-                .push(ahoy.installer.view(&ahoy.dfu_connection))
-                .into()
-        } else {
-            // selecting a release
-            Column::new()
-                .padding(DEFAULT_PADDING)
-                .push(ahoy.status.view(conn))
-                .push(Rule::horizontal(1))
-                // .push(error_message)
-                .push(ahoy.controls.view(&ahoy.filter))
-                .push(Rule::horizontal(1))
-                .push(ahoy.versions.view(
-                    &ahoy.error,
-                    &ahoy.filter,
-                    &ahoy.releases,
-                    conn,
-                    &ahoy.selected_version,
-                ))
-                .into()
-        }
-    } else {
-        /* WHEN A DEVICE IS NOT CONNECTED */
-        let usb_cable_image =
-            Svg::new(Handle::from_memory(IMAGE_USB_CABLE_DARK)).height(Length::Units(400));
-
-        let bridge6 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_DARK)).width(Length::Units(100));
-
-        let bridge4 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_DARK)).width(Length::Units(100));
-
-        let pm_logo = iced_native::widget::Image::new(image::Handle::from_memory(
-            IMAGE_PIRATE_MIDI_LOGO.to_vec(),
-        ))
-        .width(Length::Units(200));
-
-        Column::new()
+    let content: Element<Message> = match &ahoy.device {
+        super::DeviceState::Disconnected => Column::new()
             .align_items(Alignment::Center)
             .spacing(DEFAULT_PADDING)
             .width(Length::Fill)
@@ -68,17 +41,66 @@ pub(crate) fn handle_view(ahoy: &mut Ahoy) -> Element<Message> {
             )
             .push(Space::with_height(Length::Fill))
             .push(pm_logo)
-            .into()
-    };
+            .into(),
+        super::DeviceState::Connected { device: _, details } => {
+            // selecting a release
+            let inner_content = Column::new()
+                .padding(DEFAULT_PADDING)
+                .push(ahoy.status.view(&details))
+                .push(Rule::horizontal(1))
+                .push(ahoy.controls.view(&ahoy.filter))
+                .push(Rule::horizontal(1))
+                .push(ahoy.versions.view(
+                    &ahoy.error,
+                    &ahoy.filter,
+                    &ahoy.releases,
+                    &details,
+                    &ahoy.selected_version,
+                ))
+                .into();
 
-    // wrap modal around the inner content
-    let modal_wrapped_content = ahoy.confirm_modal.view(inner_content);
+            // wrap modal around the inner content
+            ahoy.confirm_modal.view(inner_content)
+        }
+        // device is connected in DFU mode
+        super::DeviceState::DFU(device) => Column::new()
+            .padding(DEFAULT_PADDING)
+            .align_items(Alignment::Center)
+            // .push(ahoy.status.view(&details))
+            // .push(Rule::horizontal(1))
+            .push(Space::with_height(Length::Fill))
+            .push(ahoy.installer.view(device))
+            .push(Space::with_height(Length::Fill))
+            .push(pm_logo)
+            .into(),
+        super::DeviceState::PostInstall => Column::new()
+            .align_items(Alignment::Center)
+            .spacing(DEFAULT_PADDING)
+            .width(Length::Fill)
+            .push(Space::with_height(Length::Fill))
+            .push(Text::new("Installation Complete!").size(DEFAULT_HEADING_FONT_SIZE))
+            .push(Text::new("Unplug your device and go forth brave explorer!"))
+            .push(Space::with_height(Length::Units(DEFAULT_PADDING * 2)))
+            .push(
+                Button::new(
+                    &mut ahoy.reset_button,
+                    Text::new("Close").horizontal_alignment(Horizontal::Center),
+                )
+                .on_press(Message::AttemptReset)
+                .padding(DEFAULT_PADDING)
+                .width(Length::Units(130))
+                .style(style::Button::SuccessAction),
+            )
+            .push(Space::with_height(Length::Fill))
+            .push(pm_logo)
+            .into(),
+    };
 
     // setup graphical debugging
     let output = if ahoy.debug {
-        modal_wrapped_content.explain(Color::BLACK)
+        content.explain(Color::BLACK)
     } else {
-        modal_wrapped_content
+        content
     };
 
     // finally wrap everything in a container.

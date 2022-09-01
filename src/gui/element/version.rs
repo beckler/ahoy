@@ -2,13 +2,13 @@ use iced::{
     alignment::Horizontal, button, scrollable, Alignment, Button, Column, Container, Element,
     Length, Row, Rule, Scrollable, Space, Text,
 };
+use pirate_midi_rs::check::CheckResponse;
 
 use crate::{
-    command::{device::UsbConnection, github::Release},
+    command::github::Release,
     gui::{
-        self,
         style::{self},
-        Filter, Message, DEFAULT_PADDING,
+        Error, Filter, Message, DEFAULT_PADDING,
     },
 };
 
@@ -29,13 +29,14 @@ pub struct VersionList {
 impl VersionList {
     pub fn view<'a>(
         &'a mut self,
-        error: &'a Option<gui::Error>,
+        error: &'a Option<Error>,
         filter: &'a Filter,
         releases: &'a Option<Vec<Release>>,
-        connection: &'a UsbConnection,
+        device_details: &'a CheckResponse,
         selected_release: &'a Option<Release>,
     ) -> Element<'a, Message> {
-        let version_row: Element<Message> = if let Some(error) = error {
+
+        let error_message: Element<Message> = if let Some(error) = error {
             /* ERROR DISPLAY */
             Column::new()
                 .padding(DEFAULT_PADDING)
@@ -51,6 +52,11 @@ impl VersionList {
                 )
                 .into()
         } else {
+            Space::new(Length::Shrink, Length::Shrink).into()
+        };
+
+
+        let version_row: Element<Message> = 
             /* RELEASE LIST */
             if let Some(release_list) = releases {
                 // convert our release list to a format that we can display
@@ -114,12 +120,7 @@ impl VersionList {
                     Some(selected) => {
                         let selected_asset = selected.assets.iter().find(|asset| {
                             asset.name.contains(
-                                connection
-                                    .details
-                                    .device_model
-                                    .trim()
-                                    .to_lowercase()
-                                    .as_str(),
+                                device_details.device_model.trim().to_lowercase().as_str(),
                             )
                         });
 
@@ -191,9 +192,12 @@ impl VersionList {
                     .push(Text::new("Loading..."))
                     .push(Space::new(Length::Fill, Length::Shrink))
                     .into()
-            }
         };
 
-        Container::new(version_row).width(Length::Fill).into()
+        Container::new(
+            Column::new()
+            .push(error_message)
+            .push(version_row)
+        ).width(Length::Fill).into()
     }
 }

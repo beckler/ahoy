@@ -1,9 +1,7 @@
-use crate::{
-    gui::{Message, DEFAULT_PADDING},
-    usb::observer::UsbDevice,
-};
+use crate::gui::{Message, DEFAULT_PADDING};
 use iced::{Alignment, Color, Column, Container, Element, Length, ProgressBar, Row, Space, Text};
 use log::*;
+use rusb::{Context, Device};
 
 #[derive(Default, Debug, Clone)]
 pub struct InstallView {
@@ -11,12 +9,12 @@ pub struct InstallView {
 }
 
 impl InstallView {
-    pub fn increment_progress(&mut self, amount: usize) {
+    pub fn increment_progress(&mut self, amount: f32) {
         trace!("progress increment: {}", amount);
-        self.progress = amount as f32
+        self.progress += amount
     }
 
-    pub fn view<'a>(&self, dfu: &Option<UsbDevice>) -> Element<'a, Message> {
+    pub fn view<'a>(&self, dfu: &Option<Device<Context>>) -> Element<'a, Message> {
         let status_text: Row<Message> = if dfu.is_some() {
             Row::new().push(Text::new("CONNECTED").color(Color::from_rgb8(100, 183, 93)))
         } else {
@@ -24,13 +22,17 @@ impl InstallView {
         };
 
         let message_text: Row<Message> = if dfu.is_some() {
-            Row::new().push(Text::new("Erasing device and installing..."))
+            if self.progress > 0.1 {
+                Row::new().push(Text::new("Installing firmware..."))
+            } else {
+                Row::new().push(Text::new("Preparing device for new firmware..."))
+            }
         } else {
             Row::new().push(Text::new("Waiting for device to enter bootloader mode..."))
         };
 
         // progress bar
-        let progress_bar: Element<Message> = if self.progress < 1.0 {
+        let progress_bar: Element<Message> = if self.progress < 0.1 {
             Space::new(Length::Units(0), Length::Units(0)).into()
         } else {
             ProgressBar::new(0.0..=100.0, self.progress).into()

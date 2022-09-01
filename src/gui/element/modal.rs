@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use iced::{alignment::Horizontal, button, Button, Column, Element, Length, Row, Text};
+use iced::{alignment::Horizontal, button, Alignment, Button, Column, Element, Length, Row, Text};
 use iced_aw::{modal, Card, Modal};
 
 use crate::gui::{style, Message, DEFAULT_PADDING};
@@ -31,12 +31,25 @@ impl ConfirmModal {
         Modal::new(&mut self.modal_state, content, |state| {
             Card::new(
                 Text::new(String::new()),
-                Column::new().push(Text::new("Clicking install will download the binary and install it to your device.\nDO NOT UNPLUG YOUR DEVICE UNTIL THE INSTALLATION IS FINISHED.")),
+                Column::new()
+                    .spacing(DEFAULT_PADDING)
+                    .align_items(Alignment::Center)
+                    .push(
+                        Text::new("The binary has been downloaded and is ready to install!")
+                            .horizontal_alignment(Horizontal::Center),
+                    )
+                    .push(
+                        Text::new(
+                            "PLEASE DO NOT UNPLUG YOUR DEVICE UNTIL THE INSTALLATION IS FINISHED.",
+                        )
+                        .horizontal_alignment(Horizontal::Center),
+                    ),
             )
+            .padding_body(DEFAULT_PADDING.into())
             .foot(
                 Row::new()
-                    .spacing(10)
-                    .padding(5)
+                    .spacing(DEFAULT_PADDING)
+                    .padding(DEFAULT_PADDING / 2)
                     .width(Length::Fill)
                     .push(
                         Button::new(
@@ -56,7 +69,7 @@ impl ConfirmModal {
                         .on_press(Message::EnterBootloader)
                         .padding(DEFAULT_PADDING)
                         .width(Length::Fill)
-                        .style(style::Button::ReleaseSelected),
+                        .style(style::Button::SuccessAction),
                     ),
             )
             .style(style::Card::Modal)
