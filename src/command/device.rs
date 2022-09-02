@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use dfu_libusb::DfuLibusb;
-use log::error;
+use log::{error, info};
 use pirate_midi_rs::{Command, ControlArgs, PirateMIDIDevice};
 use rusb::{Context, Device};
 
@@ -22,19 +22,21 @@ pub async fn install_binary(
         Some(device) => {
             // get device descriptor
             let (vid, pid) = match device.device_descriptor() {
-                Ok(desc) => (desc.product_id(), desc.vendor_id()),
+                Ok(desc) => (desc.vendor_id(), desc.product_id()),
                 Err(err) => panic!(
                     "unable to get device descriptors from usb device! - error: {}",
                     err
                 ),
             };
             // open the DFU interface
+            info!("opening interface: {:#06x}:{:#06x}", vid, pid);
             DfuLibusb::open(device.context(), vid, pid, 0, 0)
                 .map_err(|e| CommandError::Dfu(e.to_string()))?
         }
         // if we didn't pass in a device, just try to guess via VID and PID
         None => {
             // create new usb context
+            info!("device was not passed in - creating new usb context");
             let context = rusb::Context::new().map_err(|e| {
                 CommandError::Device(format!("unable to create usb context: {}", e))
             })?;
