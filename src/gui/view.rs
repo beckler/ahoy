@@ -57,7 +57,7 @@ pub(crate) fn handle_view(ahoy: &mut Ahoy) -> Element<Message> {
             ahoy.confirm_modal.view(inner_content)
         }
         // device is connected in DFU mode
-        super::DeviceState::DFU(device, _) => Column::new()
+        super::DeviceState::DFU(device, _, _) => Column::new()
             .padding(DEFAULT_PADDING)
             .align_items(Alignment::Center)
             // .push(ahoy.status.view(&details))

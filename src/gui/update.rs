@@ -57,9 +57,9 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
                 if ahoy.installable_asset.is_some() && device.is_dfu_device() {
                     // create our channel for sharing install progress
                     let (tx, rx) = mpsc::channel::<f32>(10);
-                    ahoy.install_sender = Some(tx);
                     ahoy.device = super::DeviceState::DFU(
                         Some(device.raw_device.unwrap()),
+                        Some(tx),
                         Some(Arc::new(Mutex::new(rx))),
                     );
                     return self::handle_message(ahoy, Message::Install);
@@ -101,24 +101,19 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
             }
         },
         Message::EnterBootloader => {
-            info!("hiding modal");
+            // change the device state for quicker ui update
+            ahoy.device = super::DeviceState::DFU(None, None, None);
+
             // hide the modal
+            info!("hiding modal");
             ahoy.confirm_modal.hide();
 
-            // enter the bootloader - but only if we have a connected device
-            match &ahoy.device {
-                super::DeviceState::Connected { .. } => {
-                    info!("sending bootloader command...");
-                    return Command::perform(enter_bootloader(), Message::WaitForBootloader);
-                }
-                _ => panic!(
-                    "should not be able to reach this state - so I have no idea wtf happened"
-                ),
-            }
+            // send the command to enter bootloader mode
+            info!("sending bootloader command...");
+            return Command::perform(enter_bootloader(), Message::WaitForBootloader);
         }
         Message::WaitForBootloader(Ok(())) => {
-            // set the state and then wait for the DeviceChangedAction::Connect event!
-            ahoy.device = super::DeviceState::DFU(None, None);
+            // wait for the DeviceChangedAction::Connect event!
             return Command::none();
         }
         Message::WaitForBootloader(Err(err)) => {
@@ -130,7 +125,7 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
             info!("installing!");
 
             match &ahoy.device {
-                crate::gui::DeviceState::DFU(device, _) => {
+                crate::gui::DeviceState::DFU(device, sender, _) => {
                     // get our firmware path
                     let binary_path = ahoy
                         .installable_asset
@@ -140,13 +135,11 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
                     let progress_fn = {
                         // get total file size to determine percentage
                         let total = binary_path.metadata().unwrap().len();
-                        // let mut installer = ahoy.installer.clone();
-
-                        let mut sender = ahoy.install_sender.as_ref().unwrap().clone();
+                        let mut tx = sender.as_ref().unwrap().clone();
 
                         move |uploaded| {
                             let percentage = (uploaded as f32 / total as f32) * 100.0;
-                            match task::block_on(async { sender.send(percentage).await }) {
+                            match task::block_on(async { tx.send(percentage).await }) {
                                 Ok(_) => (),
                                 Err(err) => error!("error sending install percentage: {err}"),
                             };
@@ -178,17 +171,6 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
             return self::handle_message(ahoy, Message::Cancel); //send cancel to cleanup
         }
         Message::AttemptReset => {
-            // match &ahoy.device {
-            //     crate::gui::DeviceState::DFU(device) => {
-            //         info!("attempting reset");
-            //         return Command::perform(
-            //             reset_device(device.as_ref().unwrap().to_owned()),
-            //             Message::PostInstallResult,
-            //         );
-            //     }
-            //     _ => error!("invalid state to reset device"),
-            // }
-
             ahoy.device = super::DeviceState::Disconnected;
         }
         Message::Cancel => {

@@ -118,7 +118,6 @@ pub(crate) struct Ahoy {
     versions: VersionList,
     installer: InstallView,
     confirm_modal: ConfirmModal,
-    install_sender: Option<Sender<f32>>,
     install_progress: f32,
     selected_version: Option<Release>,
     installable_asset: Option<PathBuf>,
@@ -132,6 +131,7 @@ pub(crate) enum DeviceState {
     Connected(CheckResponse),
     DFU(
         Option<Device<rusb::Context>>,
+        Option<Sender<f32>>,
         Option<Arc<Mutex<Receiver<f32>>>>,
     ),
     PostInstall,
@@ -158,7 +158,7 @@ impl Application for Ahoy {
 
     fn subscription(&self) -> Subscription<Self::Message> {
         let progress_subscription: Subscription<f32> = match &self.device {
-            DeviceState::DFU(_, channel_recv) => match channel_recv.clone() {
+            DeviceState::DFU(_, _, channel_recv) => match channel_recv.clone() {
                 Some(receiver) => subscription::unfold(
                     std::any::TypeId::of::<Self>(),
                     receiver,
