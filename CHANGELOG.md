@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.1](https://github.com/beckler/ahoy/compare/v0.6.0...v0.6.1) (2022-09-02)
+
+
+### Bug Fixes
+
+* cleanup ([857078f](https://github.com/beckler/ahoy/commit/857078f9bfcde27f6cbf7e59b545b9d5dd523237))
+* have progress bar working... finally ([56676c2](https://github.com/beckler/ahoy/commit/56676c2d28165fa59ee331e539a3b0ca0beaf15e))
+* resolves [#19](https://github.com/beckler/ahoy/issues/19) and [#20](https://github.com/beckler/ahoy/issues/20) ([c61708d](https://github.com/beckler/ahoy/commit/c61708df52a2d1b6cf15a10dfd5dc0ff06394897))
+* simplifying message passing, and attempting to improve ui performance ([4c70c4f](https://github.com/beckler/ahoy/commit/4c70c4f42d40aa5f58ea01512963fe9b8eb8a1c3))
+* stupid mistake with vid/pid order ([084956e](https://github.com/beckler/ahoy/commit/084956e39b94a83fd4b0044a45f6fb09eff7579e))
+
 ## [0.6.0](https://github.com/beckler/ahoy/compare/v0.5.0...v0.6.0) (2022-08-31)
 
 
