@@ -73,10 +73,7 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
                         Ok(response) => {
                             if let Response::Check(details) = response {
                                 info!("DEVICE DETAILS: {:?}", details);
-                                ahoy.device = super::DeviceState::Connected {
-                                    device: device.raw_device.unwrap(),
-                                    details,
-                                };
+                                ahoy.device = super::DeviceState::Connected(details);
 
                                 // retrieve releases if we have a valid device
                                 return Command::perform(
@@ -133,7 +130,7 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
             info!("installing!");
 
             match &ahoy.device {
-                crate::gui::DeviceState::DFU(_, _) => {
+                crate::gui::DeviceState::DFU(device, _) => {
                     // get our firmware path
                     let binary_path = ahoy
                         .installable_asset
@@ -157,7 +154,11 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
                     };
 
                     return Command::perform(
-                        install_binary(binary_path.to_path_buf(), Some(progress_fn)),
+                        install_binary(
+                            binary_path.to_path_buf(),
+                            Some(progress_fn),
+                            device.clone(),
+                        ),
                         Message::PostInstallResult,
                     );
                 }

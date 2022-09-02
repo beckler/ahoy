@@ -129,10 +129,7 @@ pub(crate) struct Ahoy {
 pub(crate) enum DeviceState {
     #[default]
     Disconnected,
-    Connected {
-        device: Device<rusb::Context>,
-        details: CheckResponse,
-    },
+    Connected(CheckResponse),
     DFU(
         Option<Device<rusb::Context>>,
         Option<Arc<Mutex<Receiver<f32>>>>,

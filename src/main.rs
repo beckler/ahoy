@@ -124,6 +124,7 @@ fn main() {
                             bar.inc(count as u64);
                         }
                     }),
+                    None,
                 )
                 .await;
 

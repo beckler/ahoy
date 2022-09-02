@@ -36,7 +36,7 @@ pub(crate) fn handle_view(ahoy: &mut Ahoy) -> Element<Message> {
             .push(Space::with_height(Length::Fill))
             .push(pm_logo)
             .into(),
-        super::DeviceState::Connected { device: _, details } => {
+        super::DeviceState::Connected(details) => {
             // selecting a release
             let inner_content = Column::new()
                 .padding(DEFAULT_PADDING)
