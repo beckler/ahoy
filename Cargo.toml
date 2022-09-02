@@ -25,6 +25,7 @@ iced_futures = "0.4.1"
 iced_lazy = "0.1.1"
 iced_native = "0.5.1"
 indicatif = "0.17.0"
+lazy_static = "1.4.0"
 log = "0.4.17"
 pirate-midi-rs = "1.1"
 rusb = { version = "0.9.1", features = ["vendored"] }

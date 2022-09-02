@@ -4,44 +4,20 @@ mod update;
 mod usb;
 mod view;
 
-/* STATIC RESOURCES */
-// images for light mode
-// pub static IMAGE_USB_CABLE_LIGHT: &[u8] = include_bytes!("../../resources/usb-light.svg");
-// pub static IMAGE_BRIDGE_6_LIGHT: &[u8] = include_bytes!("../../resources/bridge6-light.svg");
-// pub static IMAGE_BRIDGE_4_LIGHT: &[u8] = include_bytes!("../../resources/bridge4-light.svg");
-
-// images for dark mode
-pub static IMAGE_USB_CABLE_DARK: &[u8] = include_bytes!("../../resources/usb-dark.svg");
-pub static IMAGE_BRIDGE_6_DARK: &[u8] = include_bytes!("../../resources/bridge6-dark.svg");
-pub static IMAGE_BRIDGE_4_DARK: &[u8] = include_bytes!("../../resources/bridge4-dark.svg");
-
-// images for both
-pub static IMAGE_PIRATE_MIDI_LOGO: &[u8] = include_bytes!("../../resources/pirate-midi-pink.png");
-
-// DEFAULTS
-pub static DEFAULT_FONT: &[u8] = include_bytes!("../../resources/OpenSans-Regular.ttf");
-pub static SECONDARY_FONT: Font = Font::External {
-    name: "RobotoMono",
-    bytes: include_bytes!("../../resources/RobotoMono-Regular.ttf"),
+use async_std::sync::Mutex;
+use futures::{
+    channel::mpsc::{Receiver, Sender},
+    StreamExt,
 };
-pub static DEFAULT_PADDING: u16 = 10;
-pub static DEFAULT_FONT_SIZE: u16 = 20;
-pub static SECONDARY_FONT_SIZE: u16 = 18;
-pub static DEFAULT_BORDER_RADIUS: f32 = 6.0;
-pub static DEFAULT_HEADING_FONT_SIZE: u16 = 24;
-pub static DEFAULT_FONT_COLOR: Color = Color::WHITE;
-// Color {
-//     r: 0.29,
-//     g: 0.29,
-//     b: 0.29,
-//     a: 1.0,
-// };
-
-use iced::{button, window, Application, Color, Command, Element, Font, Settings, Subscription};
+use iced::{
+    button, image, svg, window, Application, Color, Command, Element, Font, Settings, Subscription,
+};
+use iced_native::subscription;
+use lazy_static::lazy_static;
 use log::*;
 use pirate_midi_rs::check::CheckResponse;
 use rusb::Device;
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 
 use crate::{
     cli::{self, Args},
@@ -58,6 +34,32 @@ use self::{
     },
     update::handle_message,
     view::handle_view,
+};
+
+/* STATIC RESOURCES */
+// images are lazy loaded
+lazy_static! {
+    pub static ref IMAGE_USB_CABLE_DARK: svg::Handle =
+        svg::Handle::from_memory(include_bytes!("../../resources/usb-dark.svg").to_vec());
+    pub static ref IMAGE_BRIDGE_6_DARK: svg::Handle =
+        svg::Handle::from_memory(include_bytes!("../../resources/bridge6-dark.svg").to_vec());
+    pub static ref IMAGE_BRIDGE_4_DARK: svg::Handle =
+        svg::Handle::from_memory(include_bytes!("../../resources/bridge4-dark.svg").to_vec());
+    pub static ref IMAGE_PIRATE_MIDI_LOGO: image::Handle =
+        image::Handle::from_memory(include_bytes!("../../resources/pirate-midi-pink.png").to_vec());
+}
+
+// DEFAULTS
+pub static DEFAULT_PADDING: u16 = 10;
+pub static DEFAULT_FONT_SIZE: u16 = 20;
+pub static SECONDARY_FONT_SIZE: u16 = 18;
+pub static DEFAULT_BORDER_RADIUS: f32 = 6.0;
+pub static DEFAULT_HEADING_FONT_SIZE: u16 = 24;
+pub static DEFAULT_FONT_COLOR: Color = Color::WHITE;
+pub static DEFAULT_FONT: &[u8] = include_bytes!("../../resources/OpenSans-Regular.ttf");
+pub static SECONDARY_FONT: Font = Font::External {
+    name: "RobotoMono",
+    bytes: include_bytes!("../../resources/RobotoMono-Regular.ttf"),
 };
 
 pub fn run(args: Args) -> iced::Result {
@@ -95,6 +97,7 @@ pub enum Message {
     EnterBootloader,
     WaitForBootloader(Result<(), CommandError>),
     Install,
+    InstallProgress(f32),
     AttemptReset,
     PostInstallResult(Result<(), CommandError>),
 
@@ -115,12 +118,14 @@ pub(crate) struct Ahoy {
     versions: VersionList,
     installer: InstallView,
     confirm_modal: ConfirmModal,
+    install_sender: Option<Sender<f32>>,
+    install_progress: f32,
     selected_version: Option<Release>,
     installable_asset: Option<PathBuf>,
     reset_button: button::State,
 }
 
-#[derive(Default, PartialEq)]
+#[derive(Default)]
 pub(crate) enum DeviceState {
     #[default]
     Disconnected,
@@ -128,7 +133,10 @@ pub(crate) enum DeviceState {
         device: Device<rusb::Context>,
         details: CheckResponse,
     },
-    DFU(Option<Device<rusb::Context>>),
+    DFU(
+        Option<Device<rusb::Context>>,
+        Option<Arc<Mutex<Receiver<f32>>>>,
+    ),
     PostInstall,
 }
 
@@ -152,9 +160,25 @@ impl Application for Ahoy {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        // subscription::batch([
-        usb::listener().map(Message::DeviceChangedAction)
-        // ])
+        let progress_subscription: Subscription<f32> = match &self.device {
+            DeviceState::DFU(_, channel_recv) => match channel_recv.clone() {
+                Some(receiver) => subscription::unfold(
+                    std::any::TypeId::of::<Self>(),
+                    receiver,
+                    |recv| async move {
+                        let value = recv.lock().await.next().await;
+                        (value.clone(), recv)
+                    },
+                ),
+                None => Subscription::none(),
+            },
+            _ => Subscription::none(),
+        };
+
+        Subscription::batch([
+            usb::listener().map(Message::DeviceChangedAction),
+            progress_subscription.map(Message::InstallProgress),
+        ])
     }
 
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {

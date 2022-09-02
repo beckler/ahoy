@@ -1,20 +1,13 @@
 use crate::gui::{Message, DEFAULT_PADDING};
+
 use iced::{Alignment, Color, Column, Container, Element, Length, ProgressBar, Row, Space, Text};
-use log::*;
 use rusb::{Context, Device};
 
-#[derive(Default, Debug, Clone)]
-pub struct InstallView {
-    progress: f32,
-}
+#[derive(Debug, Default)]
+pub struct InstallView;
 
 impl InstallView {
-    pub fn increment_progress(&mut self, amount: f32) {
-        trace!("progress increment: {}", amount);
-        self.progress += amount
-    }
-
-    pub fn view<'a>(&self, dfu: &Option<Device<Context>>) -> Element<'a, Message> {
+    pub fn view<'a>(&self, progress: f32, dfu: &Option<Device<Context>>) -> Element<'a, Message> {
         let status_text: Row<Message> = if dfu.is_some() {
             Row::new().push(Text::new("CONNECTED").color(Color::from_rgb8(100, 183, 93)))
         } else {
@@ -22,7 +15,7 @@ impl InstallView {
         };
 
         let message_text: Row<Message> = if dfu.is_some() {
-            if self.progress > 0.1 {
+            if progress > 0.1 {
                 Row::new().push(Text::new("Installing firmware..."))
             } else {
                 Row::new().push(Text::new("Preparing device for new firmware..."))
@@ -32,10 +25,10 @@ impl InstallView {
         };
 
         // progress bar
-        let progress_bar: Element<Message> = if self.progress < 0.1 {
+        let progress_bar: Element<Message> = if progress < 0.1 {
             Space::new(Length::Units(0), Length::Units(0)).into()
         } else {
-            ProgressBar::new(0.0..=100.0, self.progress).into()
+            ProgressBar::new(0.0..=100.0, progress).into()
         };
 
         let primary_column: Column<Message> = Column::new()

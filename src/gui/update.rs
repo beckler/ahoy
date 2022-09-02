@@ -1,5 +1,7 @@
-use std::fs::remove_file;
+use std::{fs::remove_file, sync::Arc};
 
+use async_std::{sync::Mutex, task};
+use futures::{channel::mpsc, SinkExt};
 use iced::Command;
 use log::*;
 use pirate_midi_rs::*;
@@ -53,7 +55,13 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
                 info!("DEVICE CONNECTED: {:?}", device);
                 // if a DFU device connects, and we have an asset, install it!
                 if ahoy.installable_asset.is_some() && device.is_dfu_device() {
-                    ahoy.device = super::DeviceState::DFU(Some(device.raw_device.unwrap()));
+                    // create our channel for sharing install progress
+                    let (tx, rx) = mpsc::channel::<f32>(10);
+                    ahoy.install_sender = Some(tx);
+                    ahoy.device = super::DeviceState::DFU(
+                        Some(device.raw_device.unwrap()),
+                        Some(Arc::new(Mutex::new(rx))),
+                    );
                     return self::handle_message(ahoy, Message::Install);
                 }
 
@@ -92,7 +100,6 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
                         ahoy.device = super::DeviceState::Disconnected;
                     }
                 }
-
                 return Command::none();
             }
         },
@@ -113,17 +120,20 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
             }
         }
         Message::WaitForBootloader(Ok(())) => {
-            ahoy.device = super::DeviceState::DFU(None);
-        } // do nothing but wait for the DeviceChangedAction::Connect event!
+            // set the state and then wait for the DeviceChangedAction::Connect event!
+            ahoy.device = super::DeviceState::DFU(None, None);
+            return Command::none();
+        }
         Message::WaitForBootloader(Err(err)) => {
             ahoy.error = Some(super::Error::Install(err.to_string()));
             return self::handle_message(ahoy, Message::Cancel);
         }
+        Message::InstallProgress(progress) => ahoy.install_progress += progress,
         Message::Install => {
             info!("installing!");
 
             match &ahoy.device {
-                crate::gui::DeviceState::DFU(_device) => {
+                crate::gui::DeviceState::DFU(_, _) => {
                     // get our firmware path
                     let binary_path = ahoy
                         .installable_asset
@@ -133,11 +143,16 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
                     let progress_fn = {
                         // get total file size to determine percentage
                         let total = binary_path.metadata().unwrap().len();
-                        let mut installer = ahoy.installer.clone();
+                        // let mut installer = ahoy.installer.clone();
+
+                        let mut sender = ahoy.install_sender.as_ref().unwrap().clone();
 
                         move |uploaded| {
                             let percentage = (uploaded as f32 / total as f32) * 100.0;
-                            installer.increment_progress(percentage);
+                            match task::block_on(async { sender.send(percentage).await }) {
+                                Ok(_) => (),
+                                Err(err) => error!("error sending install percentage: {err}"),
+                            };
                         }
                     };
 
@@ -177,6 +192,8 @@ pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Messa
         }
         Message::Cancel => {
             info!("cancelling or cleaning up");
+            // reset install progress
+            ahoy.install_progress = 0.0;
             // delete the downloaded file if it exists
             match &ahoy.installable_asset {
                 Some(asset_path) => {

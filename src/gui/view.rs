@@ -1,6 +1,6 @@
 use iced::{
-    alignment::Horizontal, image, svg::Handle, Alignment, Button, Color, Column, Container,
-    Element, Length, Row, Rule, Space, Svg, Text,
+    alignment::Horizontal, Alignment, Button, Color, Column, Container, Element, Length, Row, Rule,
+    Space, Svg, Text,
 };
 
 use super::{
@@ -10,17 +10,11 @@ use super::{
 
 pub(crate) fn handle_view(ahoy: &mut Ahoy) -> Element<Message> {
     /* WHEN A DEVICE IS NOT CONNECTED */
-    let usb_cable_image =
-        Svg::new(Handle::from_memory(IMAGE_USB_CABLE_DARK)).height(Length::Units(400));
-
-    let bridge6 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_DARK)).width(Length::Units(100));
-
-    let bridge4 = Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_DARK)).width(Length::Units(100));
-
-    let pm_logo = iced_native::widget::Image::new(image::Handle::from_memory(
-        IMAGE_PIRATE_MIDI_LOGO.to_vec(),
-    ))
-    .width(Length::Units(200));
+    let usb_cable_image = Svg::new(IMAGE_USB_CABLE_DARK.clone()).height(Length::Units(400));
+    let bridge6 = Svg::new(IMAGE_BRIDGE_6_DARK.clone()).width(Length::Units(100));
+    let bridge4 = Svg::new(IMAGE_BRIDGE_4_DARK.clone()).width(Length::Units(100));
+    let pm_logo =
+        iced_native::widget::Image::new(IMAGE_PIRATE_MIDI_LOGO.clone()).width(Length::Units(200));
 
     // BUILD PRIMARY VIEW
     let content: Element<Message> = match &ahoy.device {
@@ -63,13 +57,13 @@ pub(crate) fn handle_view(ahoy: &mut Ahoy) -> Element<Message> {
             ahoy.confirm_modal.view(inner_content)
         }
         // device is connected in DFU mode
-        super::DeviceState::DFU(device) => Column::new()
+        super::DeviceState::DFU(device, _) => Column::new()
             .padding(DEFAULT_PADDING)
             .align_items(Alignment::Center)
             // .push(ahoy.status.view(&details))
             // .push(Rule::horizontal(1))
             .push(Space::with_height(Length::Fill))
-            .push(ahoy.installer.view(device))
+            .push(ahoy.installer.view(ahoy.install_progress, device))
             .push(Space::with_height(Length::Fill))
             .push(pm_logo)
             .into(),

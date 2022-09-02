@@ -1,4 +1,4 @@
-use iced::{svg::Handle, Alignment, Color, Column, Container, Element, Length, Row, Text};
+use iced::{Alignment, Color, Column, Container, Element, Length, Row, Text};
 use iced_native::widget::Svg;
 use pirate_midi_rs::check::CheckResponse;
 
@@ -14,8 +14,8 @@ impl DeviceView {
     pub fn view<'a>(&self, conn: &'a CheckResponse) -> Element<'a, Message> {
         // pull the brand for the device
         let model_brand = match conn.device_model.trim().to_lowercase().as_str() {
-            "bridge4" => Svg::new(Handle::from_memory(IMAGE_BRIDGE_4_DARK)),
-            _ => Svg::new(Handle::from_memory(IMAGE_BRIDGE_6_DARK)),
+            "bridge4" => Svg::new(IMAGE_BRIDGE_4_DARK.clone()),
+            _ => Svg::new(IMAGE_BRIDGE_6_DARK.clone()),
         }
         .width(Length::Units(100));
 
