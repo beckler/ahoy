@@ -23,8 +23,8 @@ All pre-built executables listed are 64-bit, unless otherwise listed. If you nee
 Use this guide for your specific machine:
 - Windows
   - Intel/AMD
-    -  [***untested**] `x86_64-pc-windows-msvc`
-    -  [***untested**] (32-bit) `i686-pc-windows-msvc`
+    - `x86_64-pc-windows-msvc`
+    - [***untested**] (32-bit) `i686-pc-windows-msvc`
 - macOS ([read caviet](#macos-caviet))
   - Apple Silicon 
     - `aarch64-apple-darwin`
@@ -32,9 +32,9 @@ Use this guide for your specific machine:
     - `x86_64-apple-darwin`
 - Linux ([read caviet](#linux-caviet))
   - Intel/AMD
-    - [***not yet available, still figureing out build issues**] `x86_64-unknown-linux-gnu`
+    - [***untested**] `x86_64-unknown-linux-gnu`
 
-_If you're able to verify these work on the specificed OS/Arch, please let me know via an Issue or PR, as I'm not readily able to verify them myself!_
+_If you're able to verify these work on the specificed OS/Arch, please let me know via an Issue or PR, as I'm not readily able to verify them all myself!_
 
 ### macOS Caviet
 
