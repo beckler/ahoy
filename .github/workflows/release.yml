@@ -102,6 +102,12 @@ jobs:
           # cargo-wix does not require static crt
           RUSTFLAGS: ""
 
+      - name: Setup | Install Code Signing Certificate [Windows]
+        continue-on-error: true
+        if: matrix.os == 'windows-latest' && matrix.target != 'aarch64-pc-windows-msvc'
+        run: |
+          echo "${{ secrets.WINDOWS_CODESIGN_CERT }}" | base64 --decode > $HOME/certificate.pfx
+
       - name: Build | Build
         uses: actions-rs/cargo@v1.0.3
         with:
@@ -115,6 +121,14 @@ jobs:
         with:
           command: wix
           args: -v --no-build --nocapture -I install/windows/main.wxs --target ${{ matrix.target }} --output target/wix/ahoy-${{ matrix.target }}.msi
+
+      - name: Sign | Installer [Windows]
+        continue-on-error: true
+        if: matrix.os == 'windows-latest' && matrix.target != 'aarch64-pc-windows-msvc'
+        uses: actions-rs/cargo@v1.0.3
+        with:
+          command: wix sign
+          args: -v
 
       - name: Post Build | Prepare artifacts [Windows]
         if: matrix.os == 'windows-latest'

@@ -2,6 +2,8 @@ use iced::{
     alignment::Horizontal, button, scrollable, Alignment, Button, Column, Container, Element,
     Length, Row, Rule, Scrollable, Space, Text,
 };
+use log::debug;
+use regex::Regex;
 use pirate_midi_rs::check::CheckResponse;
 
 use crate::{
@@ -119,10 +121,20 @@ impl VersionList {
                 let release_selected_detail: Element<Message> = match selected_release {
                     Some(selected) => {
                         let selected_asset = selected.assets.iter().find(|asset| {
-                            asset.name.contains(
-                                device_details.device_model.trim().to_lowercase().as_str(),
-                            )
+                            // this is kind of brittle... :-/
+                            // assume format "bridgeX_vX.X.X.X.bin" or "bridgeX_vX.X.X.X-beta.X.bin"
+                            // check both the device type, and the hardware revision!
+                            let model = device_details.device_model.trim().to_lowercase();
+                            let revision = device_details.hardware_version.chars().last().expect("unable to retrieve hardware version!");
+                            // ^bridge6_v\d\.\d\.\d\.1.+$
+                            // ^{model}_v\d\.\d\.\d\.{revision}.+$
+                            let regex = Regex::new(format!(r"^{model}_v\d\.\d\.\d\.{revision}.+$").as_str()).expect("unable to parse regex pattern");
+
+                            // determine if we have a match
+                            regex.is_match(&asset.name)
                         });
+
+                        debug!("selected asset: {:?}", selected_asset);
 
                         let install_bar = Row::new()
                             .align_items(Alignment::Center)
