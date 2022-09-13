@@ -6,7 +6,7 @@ It's written in [Rust](https://www.rust-lang.org), and offers a CLI and GUI. For
 
 ## Status
 
-**THIS SOFTWARE SHOULD BE CONSIDERED ALPHA, AND AS SUCH IS POSSIBLY UNSTABLE.**
+**THIS SOFTWARE SHOULD BE CONSIDERED BETA, AND AS SUCH IS POSSIBLY UNSTABLE.**
 
 If you're concerned, or believe you may have bricked your device, please read the section: [Device Recovery](#device-recovery)
 
