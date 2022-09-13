@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.2](https://github.com/beckler/ahoy/compare/v0.6.1...v0.6.2) (2022-09-13)
+
+
+### Bug Fixes
+
+* added hardware revision check ([359544d](https://github.com/beckler/ahoy/commit/359544de859a9f249cecf09186a6d5df73d2bafc))
+* updated readme, [#18](https://github.com/beckler/ahoy/issues/18) is resolved ([637429d](https://github.com/beckler/ahoy/commit/637429dcf613bbb02917bf0140ecbe57e1490aa6))
+* updated readme, [#20](https://github.com/beckler/ahoy/issues/20) is resolved ([715bd7f](https://github.com/beckler/ahoy/commit/715bd7fb35c3c001b72c4b116f8a17b6bcae3072))
+
 ## [0.6.1](https://github.com/beckler/ahoy/compare/v0.6.0...v0.6.1) (2022-09-02)
 
 
