@@ -59,6 +59,10 @@ You need `libusb` to run this, and due to some build issues, it's dynamically li
 
 ## Feature Roadmap
 
+[x] Hardware Revision Check
+[ ] Interactive Self-Update
+[ ] Backup/Restore
+
 ## Device Recovery 
 
 If you're concerned, or believe you may have bricked your device, there is a path to reapply the update! The creators of the Bridge devices had great foresight for this exact issue, and you should do the following:
