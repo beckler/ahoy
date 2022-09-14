@@ -59,9 +59,9 @@ You need `libusb` to run this, and due to some build issues, it's dynamically li
 
 ## Feature Roadmap
 
-[x] Hardware Revision Check
-[ ] Interactive Self-Update
-[ ] Backup/Restore
+- [x] Hardware Revision Check
+- [ ] Interactive Self-Update
+- [ ] Backup/Restore
 
 ## Device Recovery 
 
