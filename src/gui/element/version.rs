@@ -10,7 +10,7 @@ use crate::{
     command::github::Release,
     gui::{
         style::{self},
-        Error, Filter, Message, DEFAULT_PADDING,
+        Error, Filter, Message, DEFAULT_PADDING, SECONDARY_FONT, SECONDARY_FONT_SIZE,
     },
 };
 
@@ -186,10 +186,19 @@ impl VersionList {
                         .into(),
                 };
 
+                // build scrollable column with app version number
+                let scrollable_column = Column::new()
+                .align_items(Alignment::Center)
+                .push(Scrollable::new(&mut self.version_scroll).height(Length::Fill).push(release_selection_column))
+                .push(
+                    Text::new(env!("CARGO_PKG_VERSION"))
+                    .font(SECONDARY_FONT)
+                    .size(SECONDARY_FONT_SIZE)
+                );
+
                 // build our row
                 Row::new()
-                    .padding([0, DEFAULT_PADDING])
-                    .push(Scrollable::new(&mut self.version_scroll).push(release_selection_column))
+                    .push(scrollable_column)
                     .push(Rule::vertical(1))
                     .push(release_selected_detail)
                     .into()

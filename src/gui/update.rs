@@ -15,6 +15,13 @@ use super::{usb, Ahoy, Message};
 
 pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Message> {
     match message {
+        Message::UpdateAvailable(Ok(result)) => {
+            info!("is update available?: {result}");
+        }
+        Message::UpdateAvailable(Err(err)) => {
+            error!("issue with updates: {err}");
+        }
+        Message::UpdateApplication => {}
         Message::FetchReleases => {
             info!("fetching releases");
             ahoy.releases = None;

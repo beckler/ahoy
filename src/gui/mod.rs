@@ -23,6 +23,7 @@ use crate::{
     cli::{self, Args},
     command::{
         github::{Asset, Release},
+        update::update_available,
         CommandError,
     },
 };
@@ -83,6 +84,10 @@ pub fn run(args: Args) -> iced::Result {
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    // self-update
+    UpdateAvailable(Result<bool, CommandError>),
+    UpdateApplication,
+
     // global device
     DeviceChangedAction(usb::Event),
 
@@ -148,7 +153,7 @@ impl Application for Ahoy {
                 debug: flags.debug,
                 ..Default::default()
             },
-            Command::none(),
+            Command::perform(update_available(), Self::Message::UpdateAvailable),
         )
     }
 
