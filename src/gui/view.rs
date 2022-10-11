@@ -90,6 +90,9 @@ pub(crate) fn handle_view(ahoy: &mut Ahoy) -> Element<Message> {
             .into(),
     };
 
+    // make update modal available in all states
+    let content = ahoy.update_modal.view(content);
+
     // setup graphical debugging
     let output = if ahoy.debug {
         content.explain(Color::BLACK)

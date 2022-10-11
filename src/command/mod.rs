@@ -14,6 +14,8 @@ pub enum CommandError {
     Retieval(String),
     #[error("Failed to make a request: {0:?}")]
     Http(String),
+    #[error("unable to update: {0:?}")]
+    Update(String),
 }
 
 impl From<surf::Error> for CommandError {

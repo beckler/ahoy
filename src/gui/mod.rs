@@ -31,7 +31,8 @@ use crate::{
 use self::{
     element::controls::ControlsView,
     element::{
-        device::DeviceView, install::InstallView, modal::ConfirmModal, version::VersionList,
+        confirm_modal::ConfirmModal, device::DeviceView, install::InstallView,
+        update_modal::UpdateModal, version::VersionList,
     },
     update::handle_message,
     view::handle_view,
@@ -85,8 +86,10 @@ pub fn run(args: Args) -> iced::Result {
 #[derive(Debug, Clone)]
 pub enum Message {
     // self-update
-    UpdateAvailable(Result<bool, CommandError>),
+    UpdateAvailable(Result<Option<String>, CommandError>),
     UpdateApplication,
+    IgnoreUpdate,
+    Exit(Result<(), CommandError>),
 
     // global device
     DeviceChangedAction(usb::Event),
@@ -123,6 +126,7 @@ pub(crate) struct Ahoy {
     versions: VersionList,
     installer: InstallView,
     confirm_modal: ConfirmModal,
+    update_modal: UpdateModal,
     install_progress: f32,
     selected_version: Option<Release>,
     installable_asset: Option<PathBuf>,

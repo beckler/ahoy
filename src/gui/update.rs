@@ -9,6 +9,7 @@ use pirate_midi_rs::*;
 use crate::command::{
     device::{enter_bootloader, install_binary},
     github::{fetch_asset, fetch_releases},
+    update::update_self,
 };
 
 use super::{usb, Ahoy, Message};
@@ -16,12 +17,28 @@ use super::{usb, Ahoy, Message};
 pub(crate) fn handle_message(ahoy: &mut Ahoy, message: Message) -> Command<Message> {
     match message {
         Message::UpdateAvailable(Ok(result)) => {
-            info!("is update available?: {result}");
+            debug!("update result: {:?}", result);
+            match result {
+                Some(version) => ahoy.update_modal.show(version),
+                None => (), // do nothing
+            }
         }
         Message::UpdateAvailable(Err(err)) => {
             error!("issue with updates: {err}");
         }
-        Message::UpdateApplication => {}
+        Message::UpdateApplication => return Command::perform(update_self(false), Message::Exit),
+        Message::Exit(result) => {
+            let exit_code = match result {
+                Ok(_) => 0,
+                Err(err) => {
+                    error!("unable to install: {}", err);
+                    1
+                }
+            };
+
+            std::process::exit(exit_code);
+        }
+        Message::IgnoreUpdate => ahoy.update_modal.hide(),
         Message::FetchReleases => {
             info!("fetching releases");
             ahoy.releases = None;

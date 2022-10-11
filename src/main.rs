@@ -1,7 +1,10 @@
 // Avoid spawning an console window for the program.
 // This is ignored on other platforms.
 // https://msdn.microsoft.com/en-us/library/4cc7ya5b.aspx for more information.
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
 
 use std::{process::exit, time::Duration};
 
@@ -140,10 +143,12 @@ fn main() {
                 // finish progress bar
                 bar.finish();
             }),
-            Commands::Update => match update_self(true) {
-                Ok(_) => println!("update complete"),
-                Err(err) => error!("unable to perform update: {}", err),
-            },
+            Commands::Update => task::block_on(async {
+                match update_self(true).await {
+                    Ok(_) => println!("update complete"),
+                    Err(err) => error!("unable to perform update: {}", err),
+                }
+            }),
         },
         None => {
             // Start the GUI
