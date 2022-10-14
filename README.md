@@ -73,8 +73,9 @@ If you're concerned, or believe you may have bricked your device, there is a pat
 
 - **DON'T PANIC**
 - Download the latest release from the [Pirate MIDI Website](https://learn.piratemidi.com/software/downloads).
-- For the Bridge6, hold FS6 while plugging in a USB cable.
-- For the Bridge4, hold FS3 while plugging in a USB cable (Thanks Simon!).
+- Make sure you're not supplying power via the 9V port!
+- For the Bridge6, hold FS6 while powering up/plugging in a USB cable.
+- For the Bridge4, hold FS3 while powering up/plugging in a USB cable (Thanks Simon!).
 - Wait about 10-15 seconds, as the device won't appear to do anything.
 - Run the command: `ahoy install --skip-bootloader ~/path/to/your/downloaded/firmware.bin`
   - As a backup method, you can use the `dfu-util` command as [laid out here](https://learn.piratemidi.com/software/downloads) (click "Details & Instructions").
