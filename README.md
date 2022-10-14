@@ -6,7 +6,7 @@ It's written in [Rust](https://www.rust-lang.org), and offers a CLI and GUI. For
 
 ## Status
 
-**THIS SOFTWARE SHOULD BE CONSIDERED BETA, AND AS SUCH IS POSSIBLY UNSTABLE.**
+**THIS SOFTWARE SHOULD BE CONSIDERED BETA, AND AS SUCH IS POSSIBLY UNSTABLE**... but I think it's alright tbh.
 
 If you're concerned, or believe you may have bricked your device, please read the section: [Device Recovery](#device-recovery)
 
@@ -60,10 +60,14 @@ You need `libusb` to run this, and due to some build issues, it's dynamically li
 ## Feature Roadmap
 
 - [x] Hardware Revision Check
-- [ ] Interactive Self-Update
+- [x] Interactive Self-Update
+- [ ] Code Signing/Notorization
 - [ ] Backup/Restore
+- [ ] Supporting future devices (like click and uLoop!)
 
-## Device Recovery 
+## Device Recovery
+
+_Note: These instructions are for the Bridge 6 and Bridge 4 devices._
 
 If you're concerned, or believe you may have bricked your device, there is a path to reapply the update! The creators of the Bridge devices had great foresight for this exact issue, and you should do the following:
 
