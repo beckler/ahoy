@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/beckler/ahoy/compare/v0.6.2...v0.7.0) (2022-10-14)
+
+
+### Features
+
+* added interactive self-update! ([48013ca](https://github.com/beckler/ahoy/commit/48013ca8712b2106701dc06045a9d1511958e56d))
+
+
+### Bug Fixes
+
+* added app version in bottom corner ([b6aa00b](https://github.com/beckler/ahoy/commit/b6aa00b32353aa42dc4b5bca1a145cb69ee6a1a3))
+
 ## [0.6.2](https://github.com/beckler/ahoy/compare/v0.6.1...v0.6.2) (2022-09-13)
 
 
