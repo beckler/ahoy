@@ -1,9 +1,11 @@
 use std::path::PathBuf;
 
-use iced::{alignment::Horizontal, button, Alignment, Button, Column, Element, Length, Row, Text};
+use iced::{
+    alignment::Horizontal, button, Alignment, Button, Column, Element, Length, Row, Svg, Text,
+};
 use iced_aw::{modal, Card, Modal};
 
-use crate::gui::{style, Message, DEFAULT_PADDING};
+use crate::gui::{style, Message, DEFAULT_PADDING, IMAGE_FLEXI_BRIDGE};
 
 #[derive(Default, Clone)]
 struct ModalState {
@@ -38,6 +40,11 @@ impl ConfirmModal {
                         Text::new("The binary has been downloaded and is ready to install!")
                             .horizontal_alignment(Horizontal::Center),
                     )
+                    .push(
+                        Text::new("Next, take a TS or TRS cable and bridge Flexiports 1 and 2")
+                            .horizontal_alignment(Horizontal::Center),
+                    )
+                    .push(Svg::new(IMAGE_FLEXI_BRIDGE.clone()).width(Length::Units(300)))
                     .push(
                         Text::new(
                             "PLEASE DO NOT UNPLUG YOUR DEVICE UNTIL THE INSTALLATION IS FINISHED.",

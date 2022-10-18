@@ -47,6 +47,8 @@ lazy_static! {
         svg::Handle::from_memory(include_bytes!("../../resources/bridge6-dark.svg").to_vec());
     pub static ref IMAGE_BRIDGE_4_DARK: svg::Handle =
         svg::Handle::from_memory(include_bytes!("../../resources/bridge4-dark.svg").to_vec());
+    pub static ref IMAGE_FLEXI_BRIDGE: svg::Handle =
+        svg::Handle::from_memory(include_bytes!("../../resources/wire-bridge.svg").to_vec());
     pub static ref IMAGE_PIRATE_MIDI_LOGO: image::Handle =
         image::Handle::from_memory(include_bytes!("../../resources/pirate-midi-pink.png").to_vec());
 }
