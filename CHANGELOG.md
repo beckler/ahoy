@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/beckler/ahoy/compare/v0.7.0...v0.7.1) (2022-10-18)
+
+
+### Bug Fixes
+
+* added ts/trs bridge instructions to popup modal ([92119c5](https://github.com/beckler/ahoy/commit/92119c5342a55ae74b306fed87ea56bed113598f))
+
 ## [0.7.0](https://github.com/beckler/ahoy/compare/v0.6.2...v0.7.0) (2022-10-14)
 
 
