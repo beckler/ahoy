@@ -31,7 +31,7 @@ const USB_PRODUCT_DFU_ID: u16 = 0xDF11;
 const USB_TIMEOUT: Duration = Duration::from_secs(1);
 const GITHUB_API_URL: &str = "https://api.github.com";
 const GITHUB_ORG: &str = "Pirate-MIDI";
-const GITHUB_REPO: &str = "Pirate-MIDI-Features-Bug-Tracking";
+const GITHUB_REPO: &str = "Pirate-MIDI-BridgeOS";
 
 fn main() {
     // parse the arguments
