@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/beckler/ahoy/compare/v0.7.2...v0.8.0) (2023-01-16)
+
+
+### Features
+
+* updated repo endpoint to pull releases ([f46d400](https://github.com/beckler/ahoy/commit/f46d400e5fbf728e01d350d8547e1ff02c718c10))
+
 ## [0.7.2](https://github.com/beckler/ahoy/compare/v0.7.1...v0.7.2) (2022-10-21)
 
 
