@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3](https://github.com/beckler/ahoy/compare/v0.8.0...v0.7.3) (2023-01-18)
+
+
+### Bug Fixes
+
+* hopefully fixes autoupdater ([46d80c7](https://github.com/beckler/ahoy/commit/46d80c7a7573d1ea4a8fc2f11940519e8a79222e))
+
 ## [0.8.0](https://github.com/beckler/ahoy/compare/v0.7.2...v0.8.0) (2023-01-16)
 
 
